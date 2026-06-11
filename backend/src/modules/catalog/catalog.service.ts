@@ -9,11 +9,16 @@ export class CatalogService {
 
   // ---- CATEGORIES ----
   async getCategories(parentId?: string) {
-    return this.prisma.category.findMany({
-      where: { parentId: parentId || null, isActive: true },
-      include: { children: { where: { isActive: true } } },
+    const cats = await this.prisma.category.findMany({
+      where: parentId !== undefined ? { parentId: parentId || null, isActive: true } : { isActive: true },
+      include: {
+        children: { where: { isActive: true } },
+        parent: { select: { name: true } },
+        _count: { select: { products: true } },
+      },
       orderBy: { position: 'asc' },
     });
+    return cats.map(c => ({ ...c, icon: c.image }));
   }
 
   async getCategoryBySlug(slug: string) {

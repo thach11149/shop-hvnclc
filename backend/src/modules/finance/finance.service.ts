@@ -130,30 +130,57 @@ export class FinanceService {
     return request[0];
   }
 
-  async getAdminFinanceSummary() {
-    const [totalOrders, totalRevenue, totalSellers] = await Promise.all([
-      this.prisma.order.count({ where: { status: 'COMPLETED' } }),
+  async getAdminFinanceSummary(days = 30) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const [totalOrders, totalRevenue, totalSellers, newUsers] = await Promise.all([
+      this.prisma.order.count({ where: { status: 'COMPLETED', createdAt: { gte: since } } }),
       this.prisma.order.aggregate({
-        where: { status: 'COMPLETED' },
+        where: { status: 'COMPLETED', createdAt: { gte: since } },
         _sum: { totalAmount: true, platformFee: true },
       }),
       this.prisma.shop.count({ where: { status: 'APPROVED' } }),
+      this.prisma.user.count({ where: { createdAt: { gte: since } } }),
     ]);
 
     return {
-      totalCompletedOrders: totalOrders,
-      totalGMV: totalRevenue._sum.totalAmount || 0,
-      totalPlatformRevenue: totalRevenue._sum.platformFee || 0,
+      totalRevenue: totalRevenue._sum.totalAmount || 0,
+      totalPlatformFee: totalRevenue._sum.platformFee || 0,
+      totalOrders,
+      newUsers,
       totalActiveSellers: totalSellers,
     };
   }
 
-  async getSalesReport(startDate: Date, endDate: Date) {
-    return this.prisma.order.groupBy({
-      by: ['status'],
-      where: { createdAt: { gte: startDate, lte: endDate } },
-      _count: true,
-      _sum: { totalAmount: true },
+  async getSalesReport(startDate: Date, endDate: Date, shopId?: string) {
+    const where: any = { createdAt: { gte: startDate, lte: endDate }, status: 'COMPLETED' };
+    if (shopId) where.shopId = shopId;
+    const [byStatus, daily] = await Promise.all([
+      this.prisma.order.groupBy({
+        by: ['status'],
+        where,
+        _count: true,
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.order.findMany({
+        where,
+        select: { createdAt: true, totalAmount: true },
+      }),
+    ]);
+    const summary = {
+      revenue: byStatus.reduce((a, b) => a + Number(b._sum.totalAmount || 0), 0),
+      ordersCount: byStatus.reduce((a, b) => a + b._count, 0),
+      platformFee: 0,
+      netRevenue: 0,
+    };
+    const dailyMap: Record<string, { date: string; revenue: number; ordersCount: number }> = {};
+    daily.forEach(o => {
+      const d = o.createdAt.toISOString().slice(0, 10);
+      if (!dailyMap[d]) dailyMap[d] = { date: d, revenue: 0, ordersCount: 0 };
+      dailyMap[d].revenue += Number(o.totalAmount);
+      dailyMap[d].ordersCount += 1;
     });
+    summary.platformFee = summary.revenue * 0.05;
+    summary.netRevenue = summary.revenue - summary.platformFee;
+    return { summary, daily: Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date)) };
   }
 }

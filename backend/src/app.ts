@@ -55,6 +55,7 @@ import { createCampaignRouter } from './modules/campaign/campaign.routes';
 
 import { AnalyticsService } from './modules/analytics/analytics.service';
 import { createAnalyticsRouter } from './modules/analytics/analytics.routes';
+import { createChatRouter } from './modules/chat/chat.routes';
 
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
@@ -124,22 +125,7 @@ app.use(API_PREFIX, createSearchRouter(searchService));
 app.use(API_PREFIX, createReturnRefundRouter(returnRefundService));
 app.use(API_PREFIX, createCampaignRouter(campaignService));
 app.use(API_PREFIX, createAnalyticsRouter(analyticsService));
-
-// Promotion route
-app.get(`${API_PREFIX}/admin/promotions`, async (req, res) => {
-  const result = await promotionService.getPromotions(undefined, Number(req.query.page), Number(req.query.limit));
-  res.json({ success: true, data: result });
-});
-
-app.post(`${API_PREFIX}/admin/promotions`, async (req, res) => {
-  const result = await promotionService.createPromotion(req.body, (req as unknown as { user: { id: string } }).user?.id);
-  res.status(201).json({ success: true, data: result });
-});
-
-app.get(`${API_PREFIX}/seller/shop/promotions`, async (req, res) => {
-  const result = await promotionService.getPromotions((req as unknown as { user: { shopId: string } }).user?.shopId);
-  res.json({ success: true, data: result });
-});
+app.use(API_PREFIX, createChatRouter());
 
 // 404 and error handlers
 app.use(notFoundHandler);

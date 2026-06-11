@@ -39,13 +39,16 @@ export function createFinanceRouter(financeService: FinanceService) {
   });
 
   router.get('/admin/finance/summary', authenticate, authorize('ADMIN_FINANCE', 'SUPER_ADMIN'), async (req, res) => {
-    const result = await financeService.getAdminFinanceSummary();
+    const days = Number(req.query.days) || 30;
+    const result = await financeService.getAdminFinanceSummary(days);
     sendSuccess(res, result);
   });
 
-  router.get('/admin/withdrawals', authenticate, authorize('ADMIN_FINANCE', 'SUPER_ADMIN'), async (req, res) => {
-    const { AdminService } = require('../admin/admin.service');
-    sendSuccess(res, { message: 'Use admin service' });
+  router.get('/seller/finance/report', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res) => {
+    const days = Number(req.query.days) || 30;
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const result = await financeService.getSalesReport(startDate, new Date(), req.user!.shopId!);
+    sendSuccess(res, result);
   });
 
   return router;

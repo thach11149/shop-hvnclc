@@ -7,32 +7,35 @@ export class AdminService {
   constructor(private prisma: PrismaClient) {}
 
   async getDashboard() {
-    const [users, shops, products, orders, revenue] = await Promise.all([
+    const since30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [totalUsers, totalSellers, totalOrders, revenue, todayOrders, pendingSellersList, pendingProductsList, monthRevenue] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.shop.count({ where: { status: 'APPROVED' } }),
-      this.prisma.product.count({ where: { status: 'ACTIVE' } }),
       this.prisma.order.count(),
-      this.prisma.order.aggregate({
-        where: { status: 'COMPLETED' },
-        _sum: { totalAmount: true },
+      this.prisma.order.aggregate({ where: { status: 'COMPLETED' }, _sum: { totalAmount: true } }),
+      this.prisma.order.count({ where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
+      this.prisma.sellerProfile.findMany({
+        where: { shop: { status: 'PENDING_APPROVAL' } },
+        include: { user: { select: { email: true } }, shop: { select: { name: true } } },
+        take: 5,
       }),
+      this.prisma.product.findMany({
+        where: { status: 'PENDING_APPROVAL' },
+        include: { shop: { select: { name: true } } },
+        take: 5,
+      }),
+      this.prisma.order.aggregate({ where: { status: 'COMPLETED', createdAt: { gte: since30Days } }, _sum: { totalAmount: true } }),
     ]);
 
-    const pendingSellers = await this.prisma.shop.count({ where: { status: 'PENDING_APPROVAL' } });
-    const pendingProducts = await this.prisma.product.count({ where: { status: 'PENDING_APPROVAL' } });
-    const todayOrders = await this.prisma.order.count({
-      where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
-    });
-
     return {
-      totalUsers: users,
-      activeShops: shops,
-      activeProducts: products,
-      totalOrders: orders,
-      totalGMV: revenue._sum.totalAmount || 0,
-      pendingSellers,
-      pendingProducts,
+      totalUsers,
+      totalSellers,
+      totalOrders,
       todayOrders,
+      totalGMV: revenue._sum.totalAmount || 0,
+      monthRevenue: monthRevenue._sum.totalAmount || 0,
+      pendingSellers: pendingSellersList,
+      pendingProducts: pendingProductsList,
     };
   }
 
