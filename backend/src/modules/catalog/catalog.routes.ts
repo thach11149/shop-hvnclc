@@ -63,6 +63,11 @@ export function createCatalogRouter(catalogService: CatalogService) {
     }
   );
 
+  router.get('/seller/products/:id', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const product = await catalogService.getSellerProductById(req.params.id, req.user!.shopId!);
+    sendSuccess(res, product);
+  });
+
   router.patch('/seller/products/:id', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
     const product = await catalogService.updateProduct(req.params.id, req.user!.shopId!, req.body);
     sendSuccess(res, product);

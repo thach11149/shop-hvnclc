@@ -166,6 +166,20 @@ export class CatalogService {
     return buildPaginatedResult(products, total, page, limit);
   }
 
+  async getSellerProductById(productId: string, shopId: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, shopId },
+      include: {
+        images: true,
+        skus: { include: { inventoryStock: true } },
+        category: true,
+        attributes: true,
+      },
+    });
+    if (!product) throw new AppError('Product not found', 404);
+    return product;
+  }
+
   async createProduct(shopId: string, data: {
     name: string;
     categoryId: string;
