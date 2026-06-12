@@ -2,6 +2,6 @@ git status
 
 git add .
 
-git commit -m "Cap nhat check error"
+git commit -m "Cap nhat claude env"
 
 git push origin main
