@@ -15,6 +15,26 @@ const BannersPage = lazy(() => import('./pages/BannersPage'));
 const WithdrawalsPage = lazy(() => import('./pages/WithdrawalsPage'));
 const ReturnsPage = lazy(() => import('./pages/ReturnsPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+// Phase 2
+const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'));
+const FlashSaleAdminPage = lazy(() => import('./pages/FlashSaleAdminPage'));
+const ShippingCarriersPage = lazy(() => import('./pages/ShippingCarriersPage'));
+const SearchConfigPage = lazy(() => import('./pages/SearchConfigPage'));
+// Phase 3
+const WarehousesPage = lazy(() => import('./pages/WarehousesPage'));
+const FulfillmentPage = lazy(() => import('./pages/FulfillmentPage'));
+const AdsManagementPage = lazy(() => import('./pages/AdsManagementPage'));
+const AffiliateManagementPage = lazy(() => import('./pages/AffiliateManagementPage'));
+const DisputesManagementPage = lazy(() => import('./pages/DisputesManagementPage'));
+const FraudCasesPage = lazy(() => import('./pages/FraudCasesPage'));
+const RiskScoresPage = lazy(() => import('./pages/RiskScoresPage'));
+const BIDashboardPage = lazy(() => import('./pages/BIDashboardPage'));
+// Phase 4
+const AIFraudAlertsPage = lazy(() => import('./pages/AIFraudAlertsPage'));
+const DemandForecastPage = lazy(() => import('./pages/DemandForecastPage'));
+const ModelMonitoringPage = lazy(() => import('./pages/ModelMonitoringPage'));
+const MarketingSegmentsPage = lazy(() => import('./pages/MarketingSegmentsPage'));
+const MarketingAutomationPage = lazy(() => import('./pages/MarketingAutomationPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -36,6 +56,26 @@ function ProtectedLayout() {
             <Route path="/withdrawals" element={<WithdrawalsPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            {/* Phase 2 */}
+            <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+            <Route path="/flash-sale" element={<FlashSaleAdminPage />} />
+            <Route path="/shipping-carriers" element={<ShippingCarriersPage />} />
+            <Route path="/search-config" element={<SearchConfigPage />} />
+            {/* Phase 3 */}
+            <Route path="/warehouses" element={<WarehousesPage />} />
+            <Route path="/fulfillment" element={<FulfillmentPage />} />
+            <Route path="/ads" element={<AdsManagementPage />} />
+            <Route path="/affiliate" element={<AffiliateManagementPage />} />
+            <Route path="/disputes" element={<DisputesManagementPage />} />
+            <Route path="/fraud-cases" element={<FraudCasesPage />} />
+            <Route path="/risk-scores" element={<RiskScoresPage />} />
+            <Route path="/bi-dashboard" element={<BIDashboardPage />} />
+            {/* Phase 4 */}
+            <Route path="/ai/fraud-alerts" element={<AIFraudAlertsPage />} />
+            <Route path="/ai/demand-forecast" element={<DemandForecastPage />} />
+            <Route path="/ai/model-monitoring" element={<ModelMonitoringPage />} />
+            <Route path="/marketing/segments" element={<MarketingSegmentsPage />} />
+            <Route path="/marketing/automation" element={<MarketingAutomationPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
