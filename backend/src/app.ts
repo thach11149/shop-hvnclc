@@ -65,7 +65,12 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3002',
+    'http://localhost:5175',
+    process.env.FRONTEND_URL || '',
+  ].filter(Boolean),
   credentials: true,
 }));
 app.use(compression());
@@ -112,7 +117,7 @@ const analyticsService = new AnalyticsService(prisma);
 // Routes
 const API_PREFIX = '/api/v1';
 
-app.use(API_PREFIX, createAuthRouter(authService));
+app.use(`${API_PREFIX}/auth`, createAuthRouter(authService));
 app.use(API_PREFIX, createUserRouter(userService));
 app.use(API_PREFIX, createSellerRouter(sellerService));
 app.use(API_PREFIX, createCatalogRouter(catalogService));
