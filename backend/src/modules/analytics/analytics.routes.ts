@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { AnalyticsService } from './analytics.service';
-import { optionalAuth } from '../../shared/middleware/auth.middleware';
+import { optionalAuth, authenticate, authorize } from '../../shared/middleware/auth.middleware';
 import { validateRequest } from '../../shared/middleware/validate.middleware';
+import { withCache } from '../../shared/middleware/cache.middleware';
 import { sendSuccess } from '../../shared/utils/response';
 import { AuthRequest } from '../../shared/types';
 
@@ -30,6 +31,36 @@ export function createAnalyticsRouter(analyticsService: AnalyticsService) {
       }));
       await analyticsService.batchTrackEvents(events);
       sendSuccess(res, null, 'Events tracked');
+    }
+  );
+
+  // ============================================================
+  // ADMIN ANALYTICS
+  // ============================================================
+
+  router.get('/admin/analytics/summary', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR', 'ADMIN_FINANCE'),
+    withCache(120),
+    async (req: AuthRequest, res) => {
+      const period = Number(req.query.period) || 30;
+      const result = await analyticsService.getAdminSummary(period);
+      sendSuccess(res, result);
+    }
+  );
+
+  router.get('/admin/analytics/orders', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR', 'ADMIN_FINANCE'),
+    withCache(120),
+    async (req: AuthRequest, res) => {
+      const period = Number(req.query.period) || 30;
+      const result = await analyticsService.getOrderAnalytics(period);
+      sendSuccess(res, result);
+    }
+  );
+
+  router.get('/admin/fraud/cases/summary', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR'),
+    withCache(60),
+    async (_req, res) => {
+      const result = await analyticsService.getFraudCasesSummary();
+      sendSuccess(res, result);
     }
   );
 
