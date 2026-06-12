@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../../store/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../api/client';
+import NotificationBell from '../notifications/NotificationBell';
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -57,6 +58,7 @@ export default function Header() {
                   <Heart size={20} />
                   <span>Yêu thích</span>
                 </Link>
+                <NotificationBell />
                 <Link to="/cart" className="flex flex-col items-center text-xs hover:text-orange-200 relative">
                   <ShoppingCart size={20} />
                   {cart?.items?.length > 0 && (
