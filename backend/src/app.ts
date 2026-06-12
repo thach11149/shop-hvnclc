@@ -57,6 +57,9 @@ import { AnalyticsService } from './modules/analytics/analytics.service';
 import { createAnalyticsRouter } from './modules/analytics/analytics.routes';
 import { createChatRouter } from './modules/chat/chat.routes';
 
+import { LoyaltyService } from './modules/loyalty/loyalty.service';
+import { createLoyaltyRouter } from './modules/loyalty/loyalty.routes';
+
 // Phase 3 modules
 import { WarehouseService } from './modules/warehouse/warehouse.service';
 import { createWarehouseRouter } from './modules/warehouse/warehouse.routes';
@@ -129,6 +132,7 @@ const searchService = new SearchService(prisma);
 const returnRefundService = new ReturnRefundService(prisma);
 const campaignService = new CampaignService(prisma);
 const analyticsService = new AnalyticsService(prisma);
+const loyaltyService = new LoyaltyService(prisma);
 // Phase 3
 const warehouseService = new WarehouseService(prisma);
 const adsService = new AdsService(prisma);
@@ -153,6 +157,7 @@ app.use(API_PREFIX, createReturnRefundRouter(returnRefundService));
 app.use(API_PREFIX, createCampaignRouter(campaignService));
 app.use(API_PREFIX, createAnalyticsRouter(analyticsService));
 app.use(API_PREFIX, createChatRouter());
+app.use(API_PREFIX, createLoyaltyRouter(loyaltyService));
 // Phase 3
 app.use(API_PREFIX, createWarehouseRouter(warehouseService));
 app.use(API_PREFIX, createAdsRouter(adsService));
