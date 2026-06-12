@@ -1,0 +1,17 @@
+Tài khoản mẫu để đăng nhập:
+
+Role	Email	Password
+Admin	admin@marketplace.vn	Admin@123456
+Buyer	buyer@test.com	Buyer@123456
+
+Đăng nhập đúng chỗ như sau:
+
+Tài khoản	URL đúng
+buyer@test.com / Buyer@123456	http://localhost:3000/login
+admin@marketplace.vn / Admin@123456	http://localhost:5175/login
+Seller
+
+Đã tạo tài khoản seller. Đăng nhập tại http://localhost:3002/login:
+
+Email	seller@test.com
+Password	Seller@123456
