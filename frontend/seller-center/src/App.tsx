@@ -9,13 +9,20 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const NewProductPage = lazy(() => import('./pages/NewProductPage'));
 const EditProductPage = lazy(() => import('./pages/EditProductPage'));
+const VariantsPage = lazy(() => import('./pages/VariantsPage'));
+const ImportPage = lazy(() => import('./pages/ImportPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage'));
 const FinancePage = lazy(() => import('./pages/FinancePage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
+const ShopDecorationPage = lazy(() => import('./pages/ShopDecorationPage'));
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
+const FlashSalePage = lazy(() => import('./pages/FlashSalePage'));
+const CombosPage = lazy(() => import('./pages/CombosPage'));
+const FreeshippingPage = lazy(() => import('./pages/FreeshippingPage'));
 const ReturnRequestsPage = lazy(() => import('./pages/ReturnRequestsPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
+const StaffsPage = lazy(() => import('./pages/StaffsPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
 
 function ProtectedLayout() {
@@ -30,14 +37,21 @@ function ProtectedLayout() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/new" element={<NewProductPage />} />
+            <Route path="/products/import" element={<ImportPage />} />
             <Route path="/products/:id/edit" element={<EditProductPage />} />
+            <Route path="/products/:id/variants" element={<VariantsPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/finance" element={<FinancePage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/shop/decoration" element={<ShopDecorationPage />} />
             <Route path="/campaigns" element={<CampaignsPage />} />
+            <Route path="/flash-sale" element={<FlashSalePage />} />
+            <Route path="/combo-deals" element={<CombosPage />} />
+            <Route path="/freeship-rules" element={<FreeshippingPage />} />
             <Route path="/return-requests" element={<ReturnRequestsPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/staffs" element={<StaffsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
