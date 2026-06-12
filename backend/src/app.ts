@@ -1,0 +1,158 @@
+import 'express-async-errors';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import { PrismaClient } from '@prisma/client';
+
+import { errorHandler, notFoundHandler } from './shared/middleware/error.middleware';
+import { logger } from './shared/utils/logger';
+import { setEventPrisma } from './shared/events/event-publisher';
+
+import { AuthService } from './modules/auth/auth.service';
+import { createAuthRouter } from './modules/auth/auth.routes';
+
+import { UserService } from './modules/user/user.service';
+import { createUserRouter } from './modules/user/user.routes';
+
+import { SellerService } from './modules/seller/seller.service';
+import { createSellerRouter } from './modules/seller/seller.routes';
+
+import { CatalogService } from './modules/catalog/catalog.service';
+import { createCatalogRouter } from './modules/catalog/catalog.routes';
+
+import { InventoryService } from './modules/inventory/inventory.service';
+
+import { CartService } from './modules/cart/cart.service';
+import { createCartRouter } from './modules/cart/cart.routes';
+
+import { PromotionService } from './modules/promotion/promotion.service';
+
+import { OrderService } from './modules/order/order.service';
+import { createOrderRouter } from './modules/order/order.routes';
+
+import { FinanceService } from './modules/finance/finance.service';
+import { createFinanceRouter } from './modules/finance/finance.routes';
+
+import { ReviewService } from './modules/review/review.service';
+import { createReviewRouter } from './modules/review/review.routes';
+
+import { AdminService } from './modules/admin/admin.service';
+import { createAdminRouter } from './modules/admin/admin.routes';
+
+import { SearchService } from './modules/search/search.service';
+import { createSearchRouter } from './modules/search/search.routes';
+
+import { ReturnRefundService } from './modules/return-refund/return-refund.service';
+import { createReturnRefundRouter } from './modules/return-refund/return-refund.routes';
+
+import { CampaignService } from './modules/campaign/campaign.service';
+import { createCampaignRouter } from './modules/campaign/campaign.routes';
+
+import { AnalyticsService } from './modules/analytics/analytics.service';
+import { createAnalyticsRouter } from './modules/analytics/analytics.routes';
+import { createChatRouter } from './modules/chat/chat.routes';
+
+const prisma = new PrismaClient();
+setEventPrisma(prisma);
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+}));
+app.use(compression());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, error: 'Too many requests' },
+});
+app.use('/api/', limiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, error: 'Too many auth attempts' },
+});
+app.use('/api/v1/auth/', authLimiter);
+
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Instantiate services
+const authService = new AuthService(prisma);
+const userService = new UserService(prisma);
+const sellerService = new SellerService(prisma);
+const catalogService = new CatalogService(prisma);
+const inventoryService = new InventoryService(prisma);
+const cartService = new CartService(prisma);
+const promotionService = new PromotionService(prisma);
+const orderService = new OrderService(prisma, inventoryService, promotionService);
+const financeService = new FinanceService(prisma);
+const reviewService = new ReviewService(prisma);
+const adminService = new AdminService(prisma);
+const searchService = new SearchService(prisma);
+const returnRefundService = new ReturnRefundService(prisma);
+const campaignService = new CampaignService(prisma);
+const analyticsService = new AnalyticsService(prisma);
+
+// Routes
+const API_PREFIX = '/api/v1';
+
+app.use(API_PREFIX, createAuthRouter(authService));
+app.use(API_PREFIX, createUserRouter(userService));
+app.use(API_PREFIX, createSellerRouter(sellerService));
+app.use(API_PREFIX, createCatalogRouter(catalogService));
+app.use(API_PREFIX, createCartRouter(cartService));
+app.use(API_PREFIX, createOrderRouter(orderService));
+app.use(API_PREFIX, createFinanceRouter(financeService));
+app.use(API_PREFIX, createReviewRouter(reviewService));
+app.use(API_PREFIX, createAdminRouter(adminService));
+app.use(API_PREFIX, createSearchRouter(searchService));
+app.use(API_PREFIX, createReturnRefundRouter(returnRefundService));
+app.use(API_PREFIX, createCampaignRouter(campaignService));
+app.use(API_PREFIX, createAnalyticsRouter(analyticsService));
+app.use(API_PREFIX, createChatRouter());
+
+// 404 and error handlers
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3001;
+
+async function bootstrap() {
+  try {
+    await prisma.$connect();
+    logger.info('Database connected');
+
+    app.listen(PORT, () => {
+      logger.info(`API server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server', { error });
+    process.exit(1);
+  }
+}
+
+bootstrap();
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+export default app;

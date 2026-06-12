@@ -1,0 +1,21 @@
+{
+  "name": "shop-hvnclc",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend/buyer-web",
+    "frontend/seller-center",
+    "frontend/admin-console"
+  ],
+  "scripts": {
+    "dev:api": "cd backend && npm run dev",
+    "dev:buyer": "cd frontend/buyer-web && npm run dev",
+    "dev:seller": "cd frontend/seller-center && npm run dev",
+    "dev:admin": "cd frontend/admin-console && npm run dev",
+    "build": "npm run build --workspaces",
+    "db:migrate": "cd backend && npx prisma migrate dev",
+    "db:generate": "cd backend && npx prisma generate",
+    "db:seed": "cd backend && npm run db:seed"
+  }
+}
