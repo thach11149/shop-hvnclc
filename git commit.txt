@@ -1,0 +1,7 @@
+git status
+
+git add .
+
+git commit -m "Cap nhat check error"
+
+git push origin main

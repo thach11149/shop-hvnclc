@@ -1,0 +1,12 @@
+Trên https://github.com/thach11149/shop-hvnclc, hãy xem plan trong thư mục marketplace_plan_6_md_files và triển khai code từng plan:
+01_giai_doan_1_launch_baseline_loi_giao_dich_marketplace.md
+02_giai_doan_2_nang_cap_seller_promotion_search_doi_tra.md
+03_giai_doan_3_logistics_ads_affiliate_fraud_bi.md
+04_giai_doan_4_ai_bigdata_ca_nhan_hoa_tu_dong_hoa.md
+05_huong_dan_chung_cho_doi_code_tl_po_tester.md
+06_checklist_trien_khai_va_nghiem_thu_code.md
+
+Tự code và tự xử lý vấn đề và auto duyệt, không cần tôi phải phản hồi lại. nhớ commit git tiến độ thường xuyên. Nếu có lỗi gì thì ghi vô 1 file để tôi biết lỗi/vấn đề đã xảy ra và cách bạn đã xử lý để sau này không bị lỗi lại.
+
+Khi tạo session Claude Code mới, nhớ tạo branch mới từ main để lấy code mới nhất (hoặc từ branch được chỉ định)
+Sau khi làm xong Nhớ Merge Pull Request vào main để tôi bấm merge.
