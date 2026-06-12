@@ -21,6 +21,11 @@ const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const CampaignPage = lazy(() => import('./pages/CampaignPage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
 const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
+// Phase 3
+const DisputeDetailPage = lazy(() => import('./pages/DisputeDetailPage'));
+const ReferralPage = lazy(() => import('./pages/ReferralPage'));
+// Phase 4
+const AIShoppingAssistantPage = lazy(() => import('./pages/AIShoppingAssistantPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -61,6 +66,11 @@ export default function App() {
           <Route path="/account/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
           <Route path="/account/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+          {/* Phase 3 */}
+          <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetailPage /></ProtectedRoute>} />
+          <Route path="/referral" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
+          {/* Phase 4 */}
+          <Route path="/ai-assistant" element={<ProtectedRoute><AIShoppingAssistantPage /></ProtectedRoute>} />
         </Routes></Suspense></Layout>} path="/*" />
       </Routes>
     </Suspense>

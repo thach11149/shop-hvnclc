@@ -24,6 +24,17 @@ const ReturnRequestsPage = lazy(() => import('./pages/ReturnRequestsPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const StaffsPage = lazy(() => import('./pages/StaffsPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+// Phase 3
+const WarehousePage = lazy(() => import('./pages/WarehousePage'));
+const WarehouseInboundPage = lazy(() => import('./pages/WarehouseInboundPage'));
+const AdsPage = lazy(() => import('./pages/AdsPage'));
+const AdsReportsPage = lazy(() => import('./pages/AdsReportsPage'));
+const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
+const DisputesPage = lazy(() => import('./pages/DisputesPage'));
+// Phase 4
+const AIListingPage = lazy(() => import('./pages/AIListingPage'));
+const AIPricePage = lazy(() => import('./pages/AIPricePage'));
+const AIInventoryForecastPage = lazy(() => import('./pages/AIInventoryForecastPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -53,6 +64,17 @@ function ProtectedLayout() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/staffs" element={<StaffsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            {/* Phase 3 */}
+            <Route path="/warehouse" element={<WarehousePage />} />
+            <Route path="/warehouse/inbound" element={<WarehouseInboundPage />} />
+            <Route path="/ads" element={<AdsPage />} />
+            <Route path="/ads/reports" element={<AdsReportsPage />} />
+            <Route path="/affiliate" element={<AffiliatePage />} />
+            <Route path="/disputes" element={<DisputesPage />} />
+            {/* Phase 4 */}
+            <Route path="/ai/listing" element={<AIListingPage />} />
+            <Route path="/ai/price" element={<AIPricePage />} />
+            <Route path="/ai/inventory-forecast" element={<AIInventoryForecastPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
