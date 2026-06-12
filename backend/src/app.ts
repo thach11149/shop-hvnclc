@@ -57,6 +57,22 @@ import { AnalyticsService } from './modules/analytics/analytics.service';
 import { createAnalyticsRouter } from './modules/analytics/analytics.routes';
 import { createChatRouter } from './modules/chat/chat.routes';
 
+// Phase 3 modules
+import { WarehouseService } from './modules/warehouse/warehouse.service';
+import { createWarehouseRouter } from './modules/warehouse/warehouse.routes';
+
+import { AdsService } from './modules/ads/ads.service';
+import { createAdsRouter } from './modules/ads/ads.routes';
+
+import { AffiliateService } from './modules/affiliate/affiliate.service';
+import { createAffiliateRouter } from './modules/affiliate/affiliate.routes';
+
+import { DisputeService } from './modules/dispute/dispute.service';
+import { createDisputeRouter } from './modules/dispute/dispute.routes';
+
+import { FraudService } from './modules/fraud/fraud.service';
+import { createFraudRouter } from './modules/fraud/fraud.routes';
+
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
 
@@ -113,6 +129,12 @@ const searchService = new SearchService(prisma);
 const returnRefundService = new ReturnRefundService(prisma);
 const campaignService = new CampaignService(prisma);
 const analyticsService = new AnalyticsService(prisma);
+// Phase 3
+const warehouseService = new WarehouseService(prisma);
+const adsService = new AdsService(prisma);
+const affiliateService = new AffiliateService(prisma);
+const disputeService = new DisputeService(prisma);
+const fraudService = new FraudService(prisma);
 
 // Routes
 const API_PREFIX = '/api/v1';
@@ -131,6 +153,12 @@ app.use(API_PREFIX, createReturnRefundRouter(returnRefundService));
 app.use(API_PREFIX, createCampaignRouter(campaignService));
 app.use(API_PREFIX, createAnalyticsRouter(analyticsService));
 app.use(API_PREFIX, createChatRouter());
+// Phase 3
+app.use(API_PREFIX, createWarehouseRouter(warehouseService));
+app.use(API_PREFIX, createAdsRouter(adsService));
+app.use(API_PREFIX, createAffiliateRouter(affiliateService));
+app.use(API_PREFIX, createDisputeRouter(disputeService));
+app.use(API_PREFIX, createFraudRouter(fraudService));
 
 // 404 and error handlers
 app.use(notFoundHandler);
