@@ -136,7 +136,7 @@ export class UserService {
       include: {
         shop: {
           select: {
-            id: true, name: true, slug: true, logoUrl: true, isActive: true,
+            id: true, name: true, slug: true, logo: true, status: true,
             _count: { select: { followers: true, products: true } },
           },
         },
@@ -147,8 +147,8 @@ export class UserService {
       shopId: f.shopId,
       shopName: f.shop.name,
       shopSlug: f.shop.slug,
-      logoUrl: f.shop.logoUrl,
-      isActive: f.shop.isActive,
+      logoUrl: f.shop.logo,
+      isActive: f.shop.status === 'ACTIVE',
       followerCount: f.shop._count.followers,
       productCount: f.shop._count.products,
       followedAt: f.createdAt.toISOString(),

@@ -391,9 +391,9 @@ export class AiService {
     const products = await this.prisma.product.findMany({
       where: { status: 'PUBLISHED' },
       include: {
-        skus: { take: 1 },
+        skus: { take: 1, select: { price: true, comparePrice: true } },
         shop: { select: { name: true } },
-        _count: { select: { orderItems: true, reviews: true } },
+        _count: { select: { reviews: true, wishlistItems: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 20,
@@ -405,9 +405,9 @@ export class AiService {
       slug: p.slug,
       shopName: p.shop.name,
       price: p.skus[0]?.price ?? 0,
-      originalPrice: p.skus[0]?.compareAtPrice ?? null,
-      soldCount: p._count.orderItems,
+      originalPrice: p.skus[0]?.comparePrice ?? null,
       reviewCount: p._count.reviews,
+      wishlistCount: p._count.wishlistItems,
       score: Math.random() * 0.3 + 0.7,
       reason: userId ? 'Dựa trên lịch sử mua hàng của bạn' : 'Sản phẩm nổi bật hôm nay',
     })).sort((a, b) => b.score - a.score);
@@ -419,7 +419,7 @@ export class AiService {
     };
   }
 
-  async getProductRecommendations(productId: string, userId?: string) {
+  async getProductRecommendations(productId: string, _userId?: string) {
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
       select: { categoryId: true, name: true },
@@ -432,9 +432,9 @@ export class AiService {
         id: { not: productId },
       },
       include: {
-        skus: { take: 1 },
+        skus: { take: 1, select: { price: true } },
         shop: { select: { name: true } },
-        _count: { select: { orderItems: true } },
+        _count: { select: { reviews: true } },
       },
       take: 10,
     });
@@ -448,7 +448,7 @@ export class AiService {
         slug: p.slug,
         shopName: p.shop.name,
         price: p.skus[0]?.price ?? 0,
-        soldCount: p._count.orderItems,
+        reviewCount: p._count.reviews,
         score: Math.random() * 0.4 + 0.6,
         reason: 'Sản phẩm tương tự',
       })),
@@ -471,9 +471,9 @@ export class AiService {
         categoryId: categoryIds.length > 0 ? { in: categoryIds } : undefined,
       },
       include: {
-        skus: { take: 1 },
+        skus: { take: 1, select: { price: true } },
         shop: { select: { name: true } },
-        _count: { select: { orderItems: true } },
+        _count: { select: { reviews: true } },
       },
       take: 8,
     });
@@ -487,7 +487,6 @@ export class AiService {
         slug: p.slug,
         shopName: p.shop.name,
         price: p.skus[0]?.price ?? 0,
-        soldCount: p._count.orderItems,
         reason: 'Thường mua cùng với sản phẩm trong giỏ',
       })),
     };
@@ -547,13 +546,13 @@ export class AiService {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        buyer: { select: { createdAt: true, isActive: true } },
+        user: { select: { createdAt: true, status: true } },
         items: { take: 3 },
       },
     });
     if (!order) throw new AppError('Đơn hàng không tồn tại', 404);
 
-    const accountAgeDays = Math.floor((Date.now() - order.buyer.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    const accountAgeDays = Math.floor((Date.now() - order.user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
     const isNewAccount = accountAgeDays < 30;
 
     let riskScore = 0;
@@ -591,7 +590,7 @@ export class AiService {
 
     if (accountAgeDays < 7) { riskScore += 0.3; flags.push('Tài khoản rất mới (<7 ngày)'); }
     if (user._count.orders > 20 && accountAgeDays < 30) { riskScore += 0.25; flags.push('Quá nhiều đơn hàng trong thời gian ngắn'); }
-    if (!user.isActive) { riskScore += 0.5; flags.push('Tài khoản bị vô hiệu hóa'); }
+    if (user.status !== 'ACTIVE') { riskScore += 0.5; flags.push('Tài khoản bị vô hiệu hóa'); }
 
     riskScore = Math.min(riskScore + Math.random() * 0.1, 1);
 
@@ -608,11 +607,10 @@ export class AiService {
   }
 
   async getAdOptimizationSuggestions(shopId: string) {
-    const ads = await this.prisma.adCampaign.findMany({
+    const ads = await this.prisma.adsCampaign.findMany({
       where: { shopId },
       include: {
-        keywords: { take: 5 },
-        _count: { select: { keywords: true } },
+        adGroups: { include: { keywords: { take: 3 } }, take: 2 },
       },
       take: 10,
     });
@@ -632,7 +630,7 @@ export class AiService {
         {
           type: 'BID',
           action: 'INCREASE',
-          value: Number(ad.bidAmount) * 1.1,
+          value: (Number(ad.budget) * 0.1).toFixed(0) + '₫',
           expectedConversionImprovement: '+8%',
           confidence: 0.65,
         },
