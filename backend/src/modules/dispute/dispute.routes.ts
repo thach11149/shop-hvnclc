@@ -8,6 +8,16 @@ export function createDisputeRouter(disputeService: DisputeService): Router {
   const router = Router();
 
   // Buyer routes
+  router.post('/orders/:orderId/disputes', authenticate, async (req: AuthRequest, res: Response) => {
+    const data = await disputeService.createDispute(req.params.orderId, req.user!.id, req.body);
+    sendSuccess(res, data, 'Tranh chấp đã được tạo', 201);
+  });
+
+  router.get('/account/disputes', authenticate, async (req: AuthRequest, res: Response) => {
+    const data = await disputeService.listByBuyer(req.user!.id);
+    sendSuccess(res, data);
+  });
+
   router.get('/disputes/:id', authenticate, async (req: AuthRequest, res: Response) => {
     const data = await disputeService.getById(req.params.id);
     sendSuccess(res, data);
