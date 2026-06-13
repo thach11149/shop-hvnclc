@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Store, BarChart2, DollarSign, MessageSquare, LogOut, Zap, RotateCcw, Users, Warehouse, Megaphone, Link2, AlertTriangle, Bot, TrendingUp, BarChart } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Store, BarChart2, DollarSign, MessageSquare, LogOut, Zap, RotateCcw, Users, Warehouse, Megaphone, Link2, AlertTriangle, Bot, TrendingUp, BarChart, Tag, Truck } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import clsx from 'clsx';
 
@@ -19,6 +19,8 @@ const menuGroups = [
     items: [
       { path: '/campaigns', icon: Zap, label: 'Campaign' },
       { path: '/flash-sale', icon: Zap, label: 'Flash Sale' },
+      { path: '/combo-deals', icon: Tag, label: 'Combo Deals' },
+      { path: '/freeship-rules', icon: Truck, label: 'Freeship Rules' },
       { path: '/ads', icon: Megaphone, label: 'Quảng cáo' },
       { path: '/affiliate', icon: Link2, label: 'Affiliate' },
     ],
@@ -32,6 +34,7 @@ const menuGroups = [
       { path: '/finance', icon: DollarSign, label: 'Tài chính' },
       { path: '/chat', icon: MessageSquare, label: 'Chat' },
       { path: '/reports', icon: BarChart2, label: 'Báo cáo' },
+      { path: '/ads/reports', icon: BarChart2, label: 'Báo cáo QC' },
     ],
   },
   {
