@@ -26,6 +26,7 @@ const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'));
 const FollowedShopsPage = lazy(() => import('./pages/FollowedShopsPage'));
 // Phase 3
 const DisputeDetailPage = lazy(() => import('./pages/DisputeDetailPage'));
+const CreateDisputePage = lazy(() => import('./pages/CreateDisputePage'));
 const ReferralPage = lazy(() => import('./pages/ReferralPage'));
 // Phase 4
 const AIShoppingAssistantPage = lazy(() => import('./pages/AIShoppingAssistantPage'));
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="/account/followed-shops" element={<ProtectedRoute><FollowedShopsPage /></ProtectedRoute>} />
           {/* Phase 3 */}
           <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetailPage /></ProtectedRoute>} />
+          <Route path="/orders/:id/dispute" element={<ProtectedRoute><CreateDisputePage /></ProtectedRoute>} />
           <Route path="/referral" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
           {/* Phase 4 */}
           <Route path="/ai-assistant" element={<ProtectedRoute><AIShoppingAssistantPage /></ProtectedRoute>} />

@@ -224,6 +224,14 @@ export default function OrderDetailPage() {
             Yêu cầu đổi trả
           </Link>
         )}
+        {['DELIVERED', 'COMPLETED', 'SHIPPING'].includes(order.status) && (
+          <Link
+            to={`/orders/${id}/dispute`}
+            className="border border-red-400 text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 text-sm"
+          >
+            Mở tranh chấp
+          </Link>
+        )}
         {order.status === 'COMPLETED' && (
           <Link
             to={`/products/${order.items?.[0]?.sku?.product?.slug}`}
