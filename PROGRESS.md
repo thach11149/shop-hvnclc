@@ -27,13 +27,17 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] analytics
 - [x] chat
 
-### Added
+### Added (Phase 2-3)
 - [x] loyalty (loyalty points system)
 - [x] warehouse (warehouse management)
 - [x] ads (sponsored products)
 - [x] affiliate (referral system)
 - [x] dispute (dispute center)
 - [x] fraud (fraud & risk)
+
+### Added (Phase 4)
+- [x] ai — AI Shopping Assistant, Seller AI Listing, Price Suggestion, Inventory Forecast, Demand Forecast, ML Model Monitoring
+- [x] marketing — Customer Segments CRUD, Marketing Automation Flows
 
 ---
 
@@ -131,6 +135,12 @@ Vietnamese marketplace (ecommerce) platform built with:
 
 ---
 
+## Phase 4 Status
+- [x] Backend AI module (ai.service.ts + ai.routes.ts) — commit 40568f0
+- [x] Backend Marketing module (marketing.service.ts + marketing.routes.ts) — commit 40568f0
+- [x] app.ts updated with Phase 4 module registrations
+- [x] Frontend pages đã có từ các session trước (AIShoppingAssistantPage, AIListingPage, AIPricePage, AIInventoryForecastPage, DemandForecastPage, ModelMonitoringPage, MarketingSegmentsPage, MarketingAutomationPage, AIFraudAlertsPage)
+
 ## Pending / Future Work
 - [ ] Payment gateway integration (VNPay, MoMo, ZaloPay)
 - [ ] Push notifications (Firebase FCM)
@@ -140,3 +150,5 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [ ] Admin approval workflows
 - [ ] Automated seller payout scheduling
 - [ ] Mobile app (React Native)
+- [ ] AI recommendations: GET /api/v1/ai/recommendations/homepage|product/:id|cart
+- [ ] Review summary: GET /api/v1/products/:id/review-summary
