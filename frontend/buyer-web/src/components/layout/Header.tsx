@@ -80,6 +80,8 @@ export default function Header() {
                       <Link to="/orders" className="block px-4 py-2 hover:bg-gray-50 text-sm">Đơn hàng</Link>
                       <Link to="/account/addresses" className="block px-4 py-2 hover:bg-gray-50 text-sm">Địa chỉ</Link>
                       <Link to="/account/loyalty" className="block px-4 py-2 hover:bg-gray-50 text-sm">Điểm thưởng</Link>
+                      <Link to="/account/followed-shops" className="block px-4 py-2 hover:bg-gray-50 text-sm">Shop đang theo dõi</Link>
+                      <Link to="/wishlist" className="block px-4 py-2 hover:bg-gray-50 text-sm">Yêu thích</Link>
                       <Link to="/account/recommendations" className="block px-4 py-2 hover:bg-gray-50 text-sm">Gợi ý cho bạn ✨</Link>
                       <Link to="/ai-assistant" className="block px-4 py-2 hover:bg-gray-50 text-sm">Trợ lý AI 🤖</Link>
                       <hr className="my-1" />

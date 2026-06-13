@@ -74,5 +74,15 @@ export function createUserRouter(userService: UserService) {
     sendSuccess(res, null, 'Notifications marked as read');
   });
 
+  router.post('/shops/:shopId/follow', authenticate, async (req: AuthRequest, res) => {
+    const result = await userService.followShop(req.user!.id, req.params.shopId);
+    sendSuccess(res, result, result.followed ? 'Đã theo dõi shop' : 'Đã bỏ theo dõi shop');
+  });
+
+  router.get('/account/followed-shops', authenticate, async (req: AuthRequest, res) => {
+    const data = await userService.getFollowedShops(req.user!.id);
+    sendSuccess(res, data);
+  });
+
   return router;
 }

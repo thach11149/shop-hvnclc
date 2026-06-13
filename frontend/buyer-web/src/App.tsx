@@ -23,6 +23,7 @@ const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
 // Phase 2
 const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'));
+const FollowedShopsPage = lazy(() => import('./pages/FollowedShopsPage'));
 // Phase 3
 const DisputeDetailPage = lazy(() => import('./pages/DisputeDetailPage'));
 const ReferralPage = lazy(() => import('./pages/ReferralPage'));
@@ -71,6 +72,7 @@ export default function App() {
           {/* Phase 2 */}
           <Route path="/categories/:slug" element={<CategoryPage />} />
           <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
+          <Route path="/account/followed-shops" element={<ProtectedRoute><FollowedShopsPage /></ProtectedRoute>} />
           {/* Phase 3 */}
           <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetailPage /></ProtectedRoute>} />
           <Route path="/referral" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
