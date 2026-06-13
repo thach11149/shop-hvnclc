@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import { errorHandler, notFoundHandler } from './shared/middleware/error.middleware';
 import { logger } from './shared/utils/logger';
 import { setEventPrisma } from './shared/events/event-publisher';
+import { setNotificationPrisma } from './shared/utils/notification';
 
 import { AuthService } from './modules/auth/auth.service';
 import { createAuthRouter } from './modules/auth/auth.routes';
@@ -85,6 +86,7 @@ import { createMarketingRouter } from './modules/marketing/marketing.routes';
 
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
+setNotificationPrisma(prisma);
 
 const app = express();
 
