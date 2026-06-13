@@ -29,22 +29,21 @@ export class FraudService {
   }
 
   async listAIFraudAlerts(status?: string) {
-    return this.prisma.aiFraudAlert.findMany({
+    return this.prisma.fraudCase.findMany({
       where: status ? { status: status as any } : undefined,
-      orderBy: [{ confidence: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ riskScore: 'desc' }, { createdAt: 'desc' }],
       take: 200,
     });
   }
 
   async updateAlertStatus(id: string, status: string) {
-    return this.prisma.aiFraudAlert.update({
+    return this.prisma.fraudCase.update({
       where: { id },
       data: { status: status as any },
     });
   }
 
   async computeRiskScore(entityType: string, entityId: string): Promise<number> {
-    // Rule-based scoring placeholder - in production would call ML model
     let score = 0;
     if (entityType === 'USER') {
       const user = await this.prisma.user.findUnique({ where: { id: entityId } });

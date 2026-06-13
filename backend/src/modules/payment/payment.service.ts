@@ -353,7 +353,7 @@ export class PaymentService {
       data: {
         status,
         transactionRef: gatewayRef,
-        gatewayResponse: gatewayResponse ?? undefined,
+        gatewayResponse: (gatewayResponse as never) ?? undefined,
         paidAt: status === PaymentStatus.PAID ? new Date() : undefined,
         failedAt: status === PaymentStatus.FAILED ? new Date() : undefined,
       },

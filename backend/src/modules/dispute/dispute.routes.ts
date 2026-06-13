@@ -47,7 +47,7 @@ export function createDisputeRouter(disputeService: DisputeService): Router {
 
   router.post('/admin/disputes/:id/resolve', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res: Response) => {
     const { resolution, favor } = req.body;
-    const data = await disputeService.resolve(req.params.id, resolution, favor);
+    const data = await disputeService.resolve(req.params.id, resolution, favor, (req as any).user?.id ?? 'system');
     sendSuccess(res, data);
   });
 

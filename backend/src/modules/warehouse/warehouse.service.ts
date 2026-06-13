@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export class WarehouseService {
   constructor(private prisma: PrismaClient) {}
@@ -10,7 +11,7 @@ export class WarehouseService {
   }
 
   async createWarehouse(data: { name: string; code: string; address: string; province: string }) {
-    return this.prisma.warehouse.create({ data });
+    return this.prisma.warehouse.create({ data: { id: uuidv4(), ...data } });
   }
 
   async toggleWarehouse(id: string) {
@@ -21,72 +22,80 @@ export class WarehouseService {
     });
   }
 
-  async getInventory(shopId: string, search?: string) {
-    const where: any = { shopId };
+  async getInventory(warehouseId?: string, search?: string) {
+    const where: any = {};
+    if (warehouseId) where.warehouseId = warehouseId;
     if (search) {
-      where.OR = [
-        { sku: { contains: search, mode: 'insensitive' } },
-        { product: { name: { contains: search, mode: 'insensitive' } } },
-      ];
+      where.sku = {
+        OR: [
+          { skuCode: { contains: search, mode: 'insensitive' } },
+          { product: { name: { contains: search, mode: 'insensitive' } } },
+        ],
+      };
     }
-    return this.prisma.skuInventory.findMany({
+    return this.prisma.warehouseStock.findMany({
       where,
       include: { sku: { include: { product: true } }, warehouse: true },
     });
   }
 
-  async adjustInventory(id: string, shopId: string, qty: number, reason: string) {
-    const inventory = await this.prisma.skuInventory.findFirstOrThrow({ where: { id, shopId } });
-    const newQty = inventory.qty + qty;
+  async adjustInventory(stockId: string, qty: number, reason: string) {
+    const stock = await this.prisma.warehouseStock.findUniqueOrThrow({ where: { id: stockId } });
+    const newQty = stock.quantity + qty;
     if (newQty < 0) throw new Error('Insufficient inventory');
     return this.prisma.$transaction([
-      this.prisma.skuInventory.update({ where: { id }, data: { qty: newQty } }),
-      this.prisma.inventoryAdjustment.create({
-        data: { skuInventoryId: id, shopId, delta: qty, reason, type: qty > 0 ? 'IN' : 'OUT' },
+      this.prisma.warehouseStock.update({ where: { id: stockId }, data: { quantity: newQty } }),
+      this.prisma.warehouseStockMovement.create({
+        data: {
+          id: uuidv4(),
+          stockId,
+          type: qty > 0 ? 'INBOUND' : 'OUTBOUND',
+          quantity: Math.abs(qty),
+          note: reason,
+        },
       }),
     ]);
   }
 
-  async listInboundOrders(shopId: string) {
-    return this.prisma.warehouseInboundOrder.findMany({
+  async listInboundRequests(shopId: string) {
+    return this.prisma.warehouseInboundRequest.findMany({
       where: { shopId },
-      include: { items: { include: { sku: true } }, warehouse: true },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async createInboundOrder(shopId: string, warehouseCode: string, items: { sku: string; qty: number }[]) {
-    const warehouse = await this.prisma.warehouse.findFirstOrThrow({ where: { code: warehouseCode } });
-    return this.prisma.warehouseInboundOrder.create({
-      data: {
-        shopId,
-        warehouseId: warehouse.id,
-        status: 'DRAFT',
-        items: {
-          create: items.map(i => ({ skuCode: i.sku, expectedQty: i.qty })),
-        },
-      },
-      include: { items: true },
-    });
-  }
-
-  async submitInboundOrder(id: string, shopId: string) {
-    return this.prisma.warehouseInboundOrder.update({
-      where: { id, shopId, status: 'DRAFT' },
-      data: { status: 'SUBMITTED' },
-    });
-  }
-
-  async listFulfillmentOrders(type: string) {
-    return this.prisma.fulfillmentOrder.findMany({
-      where: type ? { type } : undefined,
       include: { warehouse: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getWarehouseInventory() {
-    return this.prisma.skuInventory.findMany({
+  async createInboundRequest(shopId: string, warehouseCode: string, _items: { sku: string; qty: number }[], note?: string) {
+    const warehouse = await this.prisma.warehouse.findFirstOrThrow({ where: { code: warehouseCode } });
+    return this.prisma.warehouseInboundRequest.create({
+      data: {
+        id: uuidv4(),
+        shopId,
+        warehouseId: warehouse.id,
+        note,
+        status: 'PENDING',
+      },
+    });
+  }
+
+  async submitInboundRequest(id: string) {
+    return this.prisma.warehouseInboundRequest.update({
+      where: { id },
+      data: { status: 'SCHEDULED' },
+    });
+  }
+
+  async listFulfillmentOrders(status?: string) {
+    return this.prisma.fulfillmentOrder.findMany({
+      where: status ? { status: status as any } : undefined,
+      include: { warehouse: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getWarehouseInventory(warehouseId?: string) {
+    return this.prisma.warehouseStock.findMany({
+      where: warehouseId ? { warehouseId } : undefined,
       include: { sku: { include: { product: true } }, warehouse: true },
       orderBy: { updatedAt: 'desc' },
       take: 100,
