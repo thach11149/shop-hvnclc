@@ -155,6 +155,45 @@ export class SellerService {
     return profile?.shop;
   }
 
+  async getPublicShopBySlug(slug: string) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        logo: true,
+        banner: true,
+        status: true,
+        province: true,
+        district: true,
+        createdAt: true,
+        _count: {
+          select: {
+            followers: true,
+            products: true,
+          },
+        },
+      },
+    });
+    if (!shop) throw new AppError('Shop không tồn tại', 404);
+    return {
+      id: shop.id,
+      name: shop.name,
+      slug: shop.slug,
+      description: shop.description,
+      logoUrl: shop.logo,
+      bannerUrl: shop.banner,
+      isActive: shop.status === 'ACTIVE',
+      province: shop.province,
+      district: shop.district,
+      followerCount: shop._count.followers,
+      totalProducts: shop._count.products,
+      joinedAt: shop.createdAt.toISOString(),
+    };
+  }
+
   private generateSlug(name: string) {
     return name.toLowerCase()
       .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')

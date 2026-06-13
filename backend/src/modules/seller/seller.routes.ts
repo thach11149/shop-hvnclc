@@ -9,6 +9,12 @@ import { AuthRequest } from '../../shared/types';
 export function createSellerRouter(sellerService: SellerService) {
   const router = Router();
 
+  // Public shop route (no auth needed)
+  router.get('/shops/:slug', async (req, res) => {
+    const data = await sellerService.getPublicShopBySlug(req.params.slug);
+    sendSuccess(res, data);
+  });
+
   router.post('/seller/register', authenticate,
     [
       body('fullName').notEmpty(),
