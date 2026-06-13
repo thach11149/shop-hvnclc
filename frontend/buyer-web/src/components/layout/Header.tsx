@@ -75,10 +75,13 @@ export default function Header() {
                     <span>{user?.email?.split('@')[0]}</span>
                   </button>
                   {showUserMenu && (
-                    <div className="absolute right-0 top-full mt-1 bg-white text-gray-700 rounded-lg shadow-lg w-48 py-2 z-50">
+                    <div className="absolute right-0 top-full mt-1 bg-white text-gray-700 rounded-lg shadow-lg w-52 py-2 z-50">
                       <Link to="/account" className="block px-4 py-2 hover:bg-gray-50 text-sm">Tài khoản</Link>
                       <Link to="/orders" className="block px-4 py-2 hover:bg-gray-50 text-sm">Đơn hàng</Link>
                       <Link to="/account/addresses" className="block px-4 py-2 hover:bg-gray-50 text-sm">Địa chỉ</Link>
+                      <Link to="/account/loyalty" className="block px-4 py-2 hover:bg-gray-50 text-sm">Điểm thưởng</Link>
+                      <Link to="/account/recommendations" className="block px-4 py-2 hover:bg-gray-50 text-sm">Gợi ý cho bạn ✨</Link>
+                      <Link to="/ai-assistant" className="block px-4 py-2 hover:bg-gray-50 text-sm">Trợ lý AI 🤖</Link>
                       <hr className="my-1" />
                       <button onClick={logout} className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-red-600">
                         Đăng xuất

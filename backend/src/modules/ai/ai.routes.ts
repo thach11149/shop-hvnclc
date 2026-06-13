@@ -53,5 +53,46 @@ export function createAiRouter(aiService: AiService): Router {
     sendSuccess(res, data);
   });
 
+  // Recommendations
+  router.get('/ai/recommendations/homepage', optionalAuth, async (req: AuthRequest, res: Response) => {
+    const data = await aiService.getHomepageRecommendations(req.user?.id);
+    sendSuccess(res, data);
+  });
+
+  router.get('/ai/recommendations/product/:productId', optionalAuth, async (req: AuthRequest, res: Response) => {
+    const data = await aiService.getProductRecommendations(req.params.productId, req.user?.id);
+    sendSuccess(res, data);
+  });
+
+  router.get('/ai/recommendations/cart', authenticate, async (req: AuthRequest, res: Response) => {
+    const data = await aiService.getCartRecommendations(req.user!.id);
+    sendSuccess(res, data);
+  });
+
+  // Review summary
+  router.get('/products/:productId/review-summary', optionalAuth, async (req: AuthRequest, res: Response) => {
+    const data = await aiService.getReviewSummary(req.params.productId);
+    sendSuccess(res, data);
+  });
+
+  // Fraud scoring (internal)
+  router.post('/internal/ai/fraud-score/order', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+    const { orderId } = req.body;
+    const data = await aiService.getFraudScoreForOrder(orderId);
+    sendSuccess(res, data);
+  });
+
+  router.post('/internal/ai/fraud-score/user', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+    const { userId } = req.body;
+    const data = await aiService.getFraudScoreForUser(userId);
+    sendSuccess(res, data);
+  });
+
+  // Seller: AI ads optimization
+  router.get('/seller/ai/ads-optimization', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res: Response) => {
+    const data = await aiService.getAdOptimizationSuggestions(req.user!.shopId!);
+    sendSuccess(res, data);
+  });
+
   return router;
 }

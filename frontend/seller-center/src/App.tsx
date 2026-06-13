@@ -35,6 +35,7 @@ const DisputesPage = lazy(() => import('./pages/DisputesPage'));
 const AIListingPage = lazy(() => import('./pages/AIListingPage'));
 const AIPricePage = lazy(() => import('./pages/AIPricePage'));
 const AIInventoryForecastPage = lazy(() => import('./pages/AIInventoryForecastPage'));
+const AdsOptimizationPage = lazy(() => import('./pages/AdsOptimizationPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -75,6 +76,7 @@ function ProtectedLayout() {
             <Route path="/ai/listing" element={<AIListingPage />} />
             <Route path="/ai/price" element={<AIPricePage />} />
             <Route path="/ai/inventory-forecast" element={<AIInventoryForecastPage />} />
+            <Route path="/ai/ad-optimization" element={<AdsOptimizationPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>

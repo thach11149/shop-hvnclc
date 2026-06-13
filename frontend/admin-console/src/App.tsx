@@ -35,6 +35,10 @@ const DemandForecastPage = lazy(() => import('./pages/DemandForecastPage'));
 const ModelMonitoringPage = lazy(() => import('./pages/ModelMonitoringPage'));
 const MarketingSegmentsPage = lazy(() => import('./pages/MarketingSegmentsPage'));
 const MarketingAutomationPage = lazy(() => import('./pages/MarketingAutomationPage'));
+const DataQualityPage = lazy(() => import('./pages/DataQualityPage'));
+const OperationsReportPage = lazy(() => import('./pages/OperationsReportPage'));
+const SellerDetailPage = lazy(() => import('./pages/SellerDetailPage'));
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -76,6 +80,10 @@ function ProtectedLayout() {
             <Route path="/ai/model-monitoring" element={<ModelMonitoringPage />} />
             <Route path="/marketing/segments" element={<MarketingSegmentsPage />} />
             <Route path="/marketing/automation" element={<MarketingAutomationPage />} />
+            <Route path="/data-quality" element={<DataQualityPage />} />
+            <Route path="/reports/operations" element={<OperationsReportPage />} />
+            <Route path="/sellers/:id" element={<SellerDetailPage />} />
+            <Route path="/campaigns" element={<CampaignsPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>

@@ -1,18 +1,48 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Store, BarChart2, DollarSign, MessageSquare, Tag, LogOut, Zap, RotateCcw, Users } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Store, BarChart2, DollarSign, MessageSquare, LogOut, Zap, RotateCcw, Users, Warehouse, Megaphone, Link2, AlertTriangle, Bot, TrendingUp, BarChart } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import clsx from 'clsx';
 
-const menuItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/products', icon: Package, label: 'Sản phẩm' },
-  { path: '/orders', icon: ShoppingBag, label: 'Đơn hàng' },
-  { path: '/shop', icon: Store, label: 'Shop' },
-  { path: '/campaigns', icon: Zap, label: 'Campaign' },
-  { path: '/return-requests', icon: RotateCcw, label: 'Đổi trả' },
-  { path: '/finance', icon: DollarSign, label: 'Tài chính' },
-  { path: '/chat', icon: MessageSquare, label: 'Chat' },
-  { path: '/reports', icon: BarChart2, label: 'Báo cáo' },
+const menuGroups = [
+  {
+    label: 'Quản lý',
+    items: [
+      { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { path: '/products', icon: Package, label: 'Sản phẩm' },
+      { path: '/orders', icon: ShoppingBag, label: 'Đơn hàng' },
+      { path: '/shop', icon: Store, label: 'Shop' },
+      { path: '/staffs', icon: Users, label: 'Nhân viên' },
+    ],
+  },
+  {
+    label: 'Bán hàng',
+    items: [
+      { path: '/campaigns', icon: Zap, label: 'Campaign' },
+      { path: '/flash-sale', icon: Zap, label: 'Flash Sale' },
+      { path: '/ads', icon: Megaphone, label: 'Quảng cáo' },
+      { path: '/affiliate', icon: Link2, label: 'Affiliate' },
+    ],
+  },
+  {
+    label: 'Vận hành',
+    items: [
+      { path: '/warehouse', icon: Warehouse, label: 'Kho hàng' },
+      { path: '/return-requests', icon: RotateCcw, label: 'Đổi trả' },
+      { path: '/disputes', icon: AlertTriangle, label: 'Tranh chấp' },
+      { path: '/finance', icon: DollarSign, label: 'Tài chính' },
+      { path: '/chat', icon: MessageSquare, label: 'Chat' },
+      { path: '/reports', icon: BarChart2, label: 'Báo cáo' },
+    ],
+  },
+  {
+    label: 'Công cụ AI',
+    items: [
+      { path: '/ai/listing', icon: Bot, label: 'Tạo listing AI' },
+      { path: '/ai/price', icon: TrendingUp, label: 'Gợi ý giá AI' },
+      { path: '/ai/inventory-forecast', icon: BarChart, label: 'Dự báo tồn kho' },
+      { path: '/ai/ad-optimization', icon: Megaphone, label: 'Tối ưu QC AI' },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -26,21 +56,28 @@ export default function Sidebar() {
         <div className="text-gray-400 text-xs mt-1 truncate">{user?.email}</div>
       </div>
 
-      <nav className="flex-1 py-2">
-        {menuItems.map(item => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={clsx(
-              'flex items-center gap-3 px-4 py-2.5 text-sm transition-colors',
-              location.pathname.startsWith(item.path)
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-            )}
-          >
-            <item.icon size={16} />
-            {item.label}
-          </Link>
+      <nav className="flex-1 py-2 overflow-y-auto">
+        {menuGroups.map(group => (
+          <div key={group.label} className="mb-1">
+            <div className="px-4 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {group.label}
+            </div>
+            {group.items.map(item => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={clsx(
+                  'flex items-center gap-3 px-4 py-2 text-sm transition-colors',
+                  location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                )}
+              >
+                <item.icon size={15} />
+                {item.label}
+              </Link>
+            ))}
+          </div>
         ))}
       </nav>
 

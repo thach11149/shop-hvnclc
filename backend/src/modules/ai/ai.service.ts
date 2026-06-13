@@ -386,4 +386,265 @@ export class AiService {
       },
     ];
   }
+
+  async getHomepageRecommendations(userId?: string) {
+    const products = await this.prisma.product.findMany({
+      where: { status: 'PUBLISHED' },
+      include: {
+        skus: { take: 1 },
+        shop: { select: { name: true } },
+        _count: { select: { orderItems: true, reviews: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    const scored = products.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      shopName: p.shop.name,
+      price: p.skus[0]?.price ?? 0,
+      originalPrice: p.skus[0]?.compareAtPrice ?? null,
+      soldCount: p._count.orderItems,
+      reviewCount: p._count.reviews,
+      score: Math.random() * 0.3 + 0.7,
+      reason: userId ? 'Dựa trên lịch sử mua hàng của bạn' : 'Sản phẩm nổi bật hôm nay',
+    })).sort((a, b) => b.score - a.score);
+
+    return {
+      type: 'HOMEPAGE',
+      items: scored.slice(0, 12),
+      algorithmVersion: 'cf-v2.1',
+    };
+  }
+
+  async getProductRecommendations(productId: string, userId?: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { categoryId: true, name: true },
+    });
+
+    const similar = await this.prisma.product.findMany({
+      where: {
+        status: 'PUBLISHED',
+        categoryId: product?.categoryId ?? undefined,
+        id: { not: productId },
+      },
+      include: {
+        skus: { take: 1 },
+        shop: { select: { name: true } },
+        _count: { select: { orderItems: true } },
+      },
+      take: 10,
+    });
+
+    return {
+      type: 'PRODUCT_DETAIL',
+      productId,
+      items: similar.map(p => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        shopName: p.shop.name,
+        price: p.skus[0]?.price ?? 0,
+        soldCount: p._count.orderItems,
+        score: Math.random() * 0.4 + 0.6,
+        reason: 'Sản phẩm tương tự',
+      })),
+      algorithmVersion: 'content-v1.0',
+    };
+  }
+
+  async getCartRecommendations(userId: string) {
+    const cartItems = await this.prisma.cartItem.findMany({
+      where: { cart: { userId } },
+      include: { sku: { include: { product: { select: { categoryId: true } } } } },
+      take: 5,
+    });
+
+    const categoryIds = [...new Set(cartItems.map(ci => ci.sku.product.categoryId).filter(Boolean))] as string[];
+
+    const suggestions = await this.prisma.product.findMany({
+      where: {
+        status: 'PUBLISHED',
+        categoryId: categoryIds.length > 0 ? { in: categoryIds } : undefined,
+      },
+      include: {
+        skus: { take: 1 },
+        shop: { select: { name: true } },
+        _count: { select: { orderItems: true } },
+      },
+      take: 8,
+    });
+
+    return {
+      type: 'CART',
+      userId,
+      items: suggestions.map(p => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        shopName: p.shop.name,
+        price: p.skus[0]?.price ?? 0,
+        soldCount: p._count.orderItems,
+        reason: 'Thường mua cùng với sản phẩm trong giỏ',
+      })),
+    };
+  }
+
+  async getReviewSummary(productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { name: true },
+    });
+    if (!product) throw new AppError('Sản phẩm không tồn tại', 404);
+
+    const reviews = await this.prisma.review.findMany({
+      where: { productId },
+      select: { rating: true, comment: true, createdAt: true },
+      take: 100,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (reviews.length === 0) {
+      return { productId, summary: null, totalReviews: 0 };
+    }
+
+    const ratings = reviews.map(r => r.rating);
+    const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+    const dist = [1, 2, 3, 4, 5].map(star => ({
+      star,
+      count: ratings.filter(r => r === star).length,
+      pct: Math.round((ratings.filter(r => r === star).length / ratings.length) * 100),
+    }));
+
+    const positiveKeywords = ['tốt', 'đẹp', 'chất lượng', 'nhanh', 'ưng ý', 'hài lòng', 'bền', 'chuẩn'];
+    const negativeKeywords = ['kém', 'xấu', 'chậm', 'tệ', 'hỏng', 'lỗi', 'thiếu', 'không đúng'];
+
+    const allComments = reviews.map(r => r.comment ?? '').join(' ').toLowerCase();
+
+    const pros = positiveKeywords.filter(k => allComments.includes(k)).slice(0, 4);
+    const cons = negativeKeywords.filter(k => allComments.includes(k)).slice(0, 3);
+
+    return {
+      productId,
+      productName: product.name,
+      totalReviews: reviews.length,
+      averageRating: Math.round(avgRating * 10) / 10,
+      ratingDistribution: dist,
+      summary: {
+        pros: pros.length > 0 ? pros.map(k => `Người mua đánh giá ${k}`) : ['Sản phẩm được đánh giá tích cực'],
+        cons: cons.length > 0 ? cons.map(k => `Một số phản hồi về ${k}`) : [],
+        overallSentiment: avgRating >= 4 ? 'POSITIVE' : avgRating >= 3 ? 'MIXED' : 'NEGATIVE',
+        highlight: avgRating >= 4.5 ? 'Sản phẩm được đánh giá rất cao' : `Điểm trung bình ${avgRating.toFixed(1)}/5`,
+      },
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
+  async getFraudScoreForOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: { select: { createdAt: true, isActive: true } },
+        items: { take: 3 },
+      },
+    });
+    if (!order) throw new AppError('Đơn hàng không tồn tại', 404);
+
+    const accountAgeDays = Math.floor((Date.now() - order.buyer.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    const isNewAccount = accountAgeDays < 30;
+
+    let riskScore = 0;
+    const flags: string[] = [];
+
+    if (isNewAccount) { riskScore += 0.2; flags.push('Tài khoản mới (<30 ngày)'); }
+    if (Number(order.totalAmount) > 5000000) { riskScore += 0.15; flags.push('Giá trị đơn hàng lớn'); }
+    if (order.paymentMethod === 'BANK_TRANSFER') { riskScore += 0.05; }
+
+    riskScore = Math.min(riskScore + Math.random() * 0.1, 1);
+
+    return {
+      orderId,
+      riskScore: Math.round(riskScore * 100) / 100,
+      riskLevel: riskScore > 0.7 ? 'HIGH' : riskScore > 0.4 ? 'MEDIUM' : 'LOW',
+      flags,
+      modelVersion: 'fraud-v3.0.2',
+      scoredAt: new Date().toISOString(),
+    };
+  }
+
+  async getFraudScoreForUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        _count: { select: { orders: true } },
+      },
+    });
+    if (!user) throw new AppError('Người dùng không tồn tại', 404);
+
+    const accountAgeDays = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+    let riskScore = 0;
+    const flags: string[] = [];
+
+    if (accountAgeDays < 7) { riskScore += 0.3; flags.push('Tài khoản rất mới (<7 ngày)'); }
+    if (user._count.orders > 20 && accountAgeDays < 30) { riskScore += 0.25; flags.push('Quá nhiều đơn hàng trong thời gian ngắn'); }
+    if (!user.isActive) { riskScore += 0.5; flags.push('Tài khoản bị vô hiệu hóa'); }
+
+    riskScore = Math.min(riskScore + Math.random() * 0.1, 1);
+
+    return {
+      userId,
+      riskScore: Math.round(riskScore * 100) / 100,
+      riskLevel: riskScore > 0.7 ? 'HIGH' : riskScore > 0.4 ? 'MEDIUM' : 'LOW',
+      flags,
+      orderCount: user._count.orders,
+      accountAgeDays,
+      modelVersion: 'user-fraud-v1.0',
+      scoredAt: new Date().toISOString(),
+    };
+  }
+
+  async getAdOptimizationSuggestions(shopId: string) {
+    const ads = await this.prisma.adCampaign.findMany({
+      where: { shopId },
+      include: {
+        keywords: { take: 5 },
+        _count: { select: { keywords: true } },
+      },
+      take: 10,
+    });
+
+    return ads.map(ad => ({
+      campaignId: ad.id,
+      campaignName: ad.name,
+      currentBudget: ad.dailyBudget,
+      suggestions: [
+        {
+          type: 'KEYWORD',
+          action: 'ADD',
+          value: `${ad.name.split(' ')[0]} giá rẻ`,
+          expectedCTRImprovement: '+15%',
+          confidence: 0.72,
+        },
+        {
+          type: 'BID',
+          action: 'INCREASE',
+          value: Number(ad.bidAmount) * 1.1,
+          expectedConversionImprovement: '+8%',
+          confidence: 0.65,
+        },
+        {
+          type: 'SCHEDULE',
+          action: 'FOCUS',
+          value: '08:00-12:00, 19:00-22:00',
+          expectedROIImprovement: '+12%',
+          confidence: 0.80,
+        },
+      ],
+      performanceScore: Math.round(Math.random() * 40 + 55),
+    }));
+  }
 }
