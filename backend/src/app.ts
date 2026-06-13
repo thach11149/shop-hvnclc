@@ -76,6 +76,13 @@ import { createDisputeRouter } from './modules/dispute/dispute.routes';
 import { FraudService } from './modules/fraud/fraud.service';
 import { createFraudRouter } from './modules/fraud/fraud.routes';
 
+// Phase 4 modules
+import { AiService } from './modules/ai/ai.service';
+import { createAiRouter } from './modules/ai/ai.routes';
+
+import { MarketingService } from './modules/marketing/marketing.service';
+import { createMarketingRouter } from './modules/marketing/marketing.routes';
+
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
 
@@ -139,6 +146,9 @@ const adsService = new AdsService(prisma);
 const affiliateService = new AffiliateService(prisma);
 const disputeService = new DisputeService(prisma);
 const fraudService = new FraudService(prisma);
+// Phase 4
+const aiService = new AiService(prisma);
+const marketingService = new MarketingService(prisma);
 
 // Routes
 const API_PREFIX = '/api/v1';
@@ -164,6 +174,9 @@ app.use(API_PREFIX, createAdsRouter(adsService));
 app.use(API_PREFIX, createAffiliateRouter(affiliateService));
 app.use(API_PREFIX, createDisputeRouter(disputeService));
 app.use(API_PREFIX, createFraudRouter(fraudService));
+// Phase 4
+app.use(API_PREFIX, createAiRouter(aiService));
+app.use(API_PREFIX, createMarketingRouter(marketingService));
 
 // 404 and error handlers
 app.use(notFoundHandler);
