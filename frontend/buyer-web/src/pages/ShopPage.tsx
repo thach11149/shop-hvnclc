@@ -1,11 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Heart, HeartOff } from 'lucide-react';
 import apiClient from '../api/client';
+import { useAuthStore } from '../store/auth.store';
 
 export default function ShopPage() {
   const { slug } = useParams<{ slug: string }>();
   const [tab, setTab] = useState<'products' | 'info'>('products');
+  const [followed, setFollowed] = useState(false);
+  const { isAuthenticated } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  const followMutation = useMutation({
+    mutationFn: (shopId: string) => apiClient.post(`/shops/${shopId}/follow`).then(r => r.data.data),
+    onSuccess: (data) => {
+      setFollowed(data?.followed ?? false);
+      queryClient.invalidateQueries({ queryKey: ['followed-shops'] });
+    },
+  });
 
   const { data: shop, isLoading: shopLoading } = useQuery({
     queryKey: ['shop', slug],
@@ -57,6 +70,20 @@ export default function ShopPage() {
               <span>🛍 {shop.totalSales || 0} đã bán</span>
             </div>
           </div>
+          {isAuthenticated && (
+            <button
+              onClick={() => shop?.id && followMutation.mutate(shop.id)}
+              disabled={followMutation.isPending}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                followed
+                  ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
+                  : 'bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100'
+              }`}
+            >
+              {followed ? <HeartOff size={15} /> : <Heart size={15} />}
+              {followed ? 'Bỏ theo dõi' : 'Theo dõi'}
+            </button>
+          )}
         </div>
       </div>
 

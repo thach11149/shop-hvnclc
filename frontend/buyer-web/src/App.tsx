@@ -18,14 +18,19 @@ const SearchPage = lazy(() => import('./pages/SearchPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 const AddressesPage = lazy(() => import('./pages/AddressesPage'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage'));
-const CampaignPage = lazy(() => import('./pages/CampaignPage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
 const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
+// Phase 2
+const CategoryPage = lazy(() => import('./pages/CategoryPage'));
+const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'));
+const FollowedShopsPage = lazy(() => import('./pages/FollowedShopsPage'));
 // Phase 3
 const DisputeDetailPage = lazy(() => import('./pages/DisputeDetailPage'));
+const CreateDisputePage = lazy(() => import('./pages/CreateDisputePage'));
 const ReferralPage = lazy(() => import('./pages/ReferralPage'));
 // Phase 4
 const AIShoppingAssistantPage = lazy(() => import('./pages/AIShoppingAssistantPage'));
+const RecommendationsPage = lazy(() => import('./pages/RecommendationsPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -56,7 +61,6 @@ export default function App() {
           <Route path="/products/:slug" element={<ProductDetailPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/campaigns/:slug" element={<CampaignPage />} />
           <Route path="/shops/:slug" element={<ShopPage />} />
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
@@ -66,11 +70,17 @@ export default function App() {
           <Route path="/account/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
           <Route path="/account/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+          {/* Phase 2 */}
+          <Route path="/categories/:slug" element={<CategoryPage />} />
+          <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
+          <Route path="/account/followed-shops" element={<ProtectedRoute><FollowedShopsPage /></ProtectedRoute>} />
           {/* Phase 3 */}
           <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetailPage /></ProtectedRoute>} />
+          <Route path="/orders/:id/dispute" element={<ProtectedRoute><CreateDisputePage /></ProtectedRoute>} />
           <Route path="/referral" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
           {/* Phase 4 */}
           <Route path="/ai-assistant" element={<ProtectedRoute><AIShoppingAssistantPage /></ProtectedRoute>} />
+          <Route path="/account/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
         </Routes></Suspense></Layout>} path="/*" />
       </Routes>
     </Suspense>

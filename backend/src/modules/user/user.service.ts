@@ -117,4 +117,41 @@ export class UserService {
     const where = notificationIds ? { userId, id: { in: notificationIds } } : { userId };
     return this.prisma.notification.updateMany({ where, data: { isRead: true, readAt: new Date() } });
   }
+
+  async followShop(userId: string, shopId: string) {
+    const existing = await this.prisma.shopFollower.findUnique({
+      where: { shopId_userId: { shopId, userId } },
+    });
+    if (existing) {
+      await this.prisma.shopFollower.delete({ where: { shopId_userId: { shopId, userId } } });
+      return { followed: false };
+    }
+    await this.prisma.shopFollower.create({ data: { shopId, userId } });
+    return { followed: true };
+  }
+
+  async getFollowedShops(userId: string) {
+    const follows = await this.prisma.shopFollower.findMany({
+      where: { userId },
+      include: {
+        shop: {
+          select: {
+            id: true, name: true, slug: true, logo: true, status: true,
+            _count: { select: { followers: true, products: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return follows.map(f => ({
+      shopId: f.shopId,
+      shopName: f.shop.name,
+      shopSlug: f.shop.slug,
+      logoUrl: f.shop.logo,
+      isActive: f.shop.status === 'ACTIVE',
+      followerCount: f.shop._count.followers,
+      productCount: f.shop._count.products,
+      followedAt: f.createdAt.toISOString(),
+    }));
+  }
 }

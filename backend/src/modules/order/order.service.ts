@@ -2,6 +2,7 @@ import { PrismaClient, OrderStatus, PaymentMethod } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../shared/utils/response';
 import { publishEvent } from '../../shared/events/event-publisher';
+import { createNotification } from '../../shared/utils/notification';
 import { getPaginationParams, buildPaginatedResult } from '../../shared/utils/pagination';
 import { InventoryService } from '../inventory/inventory.service';
 import { PromotionService } from '../promotion/promotion.service';
@@ -167,6 +168,21 @@ export class OrderService {
         payload: { orderNumber, shopId, total: order.totalAmount },
         source: 'buyer_web',
       });
+
+      // Notify seller about new order
+      const shopOwner = await this.prisma.sellerProfile.findFirst({
+        where: { shop: { id: shopId } },
+        select: { userId: true },
+      });
+      if (shopOwner) {
+        await createNotification({
+          userId: shopOwner.userId,
+          type: 'NEW_ORDER',
+          title: 'Đơn hàng mới',
+          body: `Bạn có đơn hàng mới #${orderNumber}`,
+          data: { orderId: order.id, orderNumber },
+        });
+      }
 
       orders.push(order);
     }
@@ -344,6 +360,27 @@ export class OrderService {
         },
       },
     });
+
+    // Notify buyer about order status change
+    if (order?.userId) {
+      const statusMessages: Partial<Record<OrderStatus, string>> = {
+        [OrderStatus.SELLER_CONFIRMED]: 'Shop đã xác nhận đơn hàng của bạn',
+        [OrderStatus.SHIPPING]: 'Đơn hàng đang được giao',
+        [OrderStatus.DELIVERED]: 'Đơn hàng đã được giao thành công',
+        [OrderStatus.COMPLETED]: 'Đơn hàng hoàn tất. Hãy đánh giá sản phẩm!',
+        [OrderStatus.CANCELLED]: 'Đơn hàng đã bị hủy',
+      };
+      const msg = statusMessages[status];
+      if (msg) {
+        await createNotification({
+          userId: order.userId,
+          type: 'ORDER_STATUS',
+          title: 'Cập nhật đơn hàng',
+          body: msg,
+          data: { orderId, status },
+        });
+      }
+    }
 
     await publishEvent({
       eventName: `order.${status.toLowerCase()}`,
