@@ -1,14 +1,9 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
+import { ArrowLeft, Upload, X, Package, CheckCircle, Clock, AlertCircle, Loader } from 'lucide-react';
 import apiClient from '../api/client';
-
-interface ReturnFormData {
-  reason: string;
-  description: string;
-  items: Array<{ orderItemId: string; quantity: number }>;
-}
 
 const RETURN_REASONS = [
   'Sản phẩm bị lỗi/hư hỏng',
@@ -16,152 +11,216 @@ const RETURN_REASONS = [
   'Nhận sai sản phẩm',
   'Sản phẩm không đúng size/màu',
   'Không hài lòng với chất lượng',
+  'Thay đổi ý định mua hàng',
   'Khác',
 ];
 
-export default function ReturnRequestPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+const RETURN_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  PENDING: { label: 'Chờ xét duyệt', color: 'text-yellow-700 bg-yellow-50 border-yellow-200' },
+  APPROVED: { label: 'Đã chấp thuận', color: 'text-green-700 bg-green-50 border-green-200' },
+  REJECTED: { label: 'Từ chối', color: 'text-red-700 bg-red-50 border-red-200' },
+  PROCESSING: { label: 'Đang xử lý', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  COMPLETED: { label: 'Hoàn thành', color: 'text-gray-700 bg-gray-50 border-gray-200' },
+};
 
-  const { data: order, isLoading } = useQuery({
-    queryKey: ['order', id],
-    queryFn: () => apiClient.get(`/orders/${id}`).then(r => r.data.data),
+export default function ReturnRequestPage() {
+  const { id: orderId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [reason, setReason] = useState(RETURN_REASONS[0]);
+  const [description, setDescription] = useState('');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+
+  const { data: order } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => apiClient.get(`/orders/${orderId}`).then((r) => r.data.data),
+    enabled: !!orderId,
   });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ReturnFormData>();
+  const { data: existingReturn } = useQuery({
+    queryKey: ['return-request', orderId],
+    queryFn: () => apiClient.get(`/orders/${orderId}/return`).then((r) => r.data.data).catch(() => null),
+    enabled: !!orderId,
+  });
 
-  const createReturn = useMutation({
-    mutationFn: (data: any) => apiClient.post('/returns', { ...data, orderId: id }),
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const imageUrls: string[] = [];
+      for (const img of images) {
+        const fd = new FormData();
+        fd.append('file', img);
+        try {
+          const res = await apiClient.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+          imageUrls.push(res.data.data?.url || '');
+        } catch {}
+      }
+      return apiClient.post(`/orders/${orderId}/return`, {
+        reason,
+        description,
+        items: selectedItems.map((id) => {
+          const item = order?.items?.find((i: any) => i.id === id);
+          return { orderItemId: id, quantity: item?.quantity || 1 };
+        }),
+        images: imageUrls.filter(Boolean),
+      });
+    },
     onSuccess: () => {
-      toast.success('Yêu cầu đổi trả đã được gửi thành công!');
-      navigate('/orders');
+      toast.success('Yêu cầu đổi trả đã được gửi!');
+      navigate(`/orders/${orderId}`);
     },
     onError: (err: any) => toast.error(err.response?.data?.error || 'Không thể gửi yêu cầu'),
   });
 
-  const onSubmit = (data: ReturnFormData) => {
-    const items = order?.items?.map((item: any) => ({
-      orderItemId: item.id,
-      quantity: item.quantity,
-    })) || [];
-    createReturn.mutate({ ...data, items });
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (images.length + files.length > 5) { toast.error('Tối đa 5 ảnh'); return; }
+    const newFiles = [...images, ...files].slice(0, 5);
+    setImages(newFiles);
+    setPreviews(newFiles.map((f) => URL.createObjectURL(f)));
   };
 
-  if (isLoading) {
+  const removeImage = (idx: number) => {
+    setImages((p) => p.filter((_, i) => i !== idx));
+    setPreviews((p) => p.filter((_, i) => i !== idx));
+  };
+
+  const toggleItem = (itemId: string) =>
+    setSelectedItems((prev) =>
+      prev.includes(itemId) ? prev.filter((i) => i !== itemId) : [...prev, itemId]
+    );
+
+  if (existingReturn) {
+    const si = RETURN_STATUS_LABELS[existingReturn.status] || RETURN_STATUS_LABELS.PENDING;
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/2 mb-4" />
-        <div className="h-64 bg-gray-200 rounded" />
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <Link to={`/orders/${orderId}`} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 mb-6 text-sm">
+          <ArrowLeft size={16} /> Quay lại đơn hàng
+        </Link>
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <h1 className="text-xl font-bold mb-4">Theo dõi yêu cầu đổi trả</h1>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium mb-4 ${si.color}`}>
+            {si.label}
+          </span>
+          <div className="space-y-2 text-sm">
+            <p><span className="font-medium">Lý do:</span> {existingReturn.reason}</p>
+            {existingReturn.description && <p><span className="font-medium">Mô tả:</span> {existingReturn.description}</p>}
+            <p><span className="font-medium">Ngày gửi:</span> {new Date(existingReturn.createdAt).toLocaleDateString('vi-VN')}</p>
+            {existingReturn.staffNote && (
+              <div className="bg-blue-50 rounded-lg p-3 mt-3">
+                <p className="font-medium text-blue-800 mb-1">Ghi chú từ bộ phận hỗ trợ:</p>
+                <p className="text-blue-700">{existingReturn.staffNote}</p>
+              </div>
+            )}
+          </div>
+          {existingReturn.images?.length > 0 && (
+            <div className="mt-4 flex gap-2">
+              {existingReturn.images.map((url: string, i: number) => (
+                <img key={i} src={url} alt="" className="w-16 h-16 object-cover rounded-lg" />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
-  if (!order) {
+  const canReturn = order && ['DELIVERED', 'COMPLETED'].includes(order.status);
+  if (!canReturn && order) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-500">
-        <p>Không tìm thấy đơn hàng</p>
-        <Link to="/orders" className="btn-primary mt-4 inline-block">Quay lại đơn hàng</Link>
-      </div>
-    );
-  }
-
-  if (order.status !== 'COMPLETED') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-gray-500">
-        <p>Chỉ có thể yêu cầu đổi trả cho đơn hàng đã hoàn thành</p>
-        <Link to={`/orders/${id}`} className="btn-primary mt-4 inline-block">Quay lại đơn hàng</Link>
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center py-16">
+        <AlertCircle size={48} className="mx-auto text-red-400 mb-3" />
+        <p className="text-gray-700 font-medium">Không thể yêu cầu đổi trả</p>
+        <p className="text-gray-500 text-sm mt-1">Chỉ có thể yêu cầu sau khi đã nhận hàng</p>
+        <Link to={`/orders/${orderId}`} className="mt-4 inline-block text-red-500 hover:underline">Quay lại</Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-4">
-        <Link to="/orders" className="hover:text-primary-600">Đơn hàng</Link>
-        <span className="mx-2">/</span>
-        <Link to={`/orders/${id}`} className="hover:text-primary-600">#{order.orderNumber}</Link>
-        <span className="mx-2">/</span>
-        <span>Yêu cầu đổi trả</span>
-      </nav>
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <Link to={`/orders/${orderId}`} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 mb-6 text-sm">
+        <ArrowLeft size={16} /> Quay lại đơn hàng
+      </Link>
+      <h1 className="text-xl font-bold mb-6">Yêu cầu đổi trả hàng</h1>
 
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Yêu cầu đổi trả</h1>
-
-      {/* Order Summary */}
-      <div className="card p-4 mb-6">
-        <h2 className="font-semibold mb-3">Đơn hàng #{order.orderNumber}</h2>
-        <div className="space-y-3">
-          {order.items?.map((item: any) => (
-            <div key={item.id} className="flex gap-3">
-              <img
-                src={item.skuImageSnapshot || 'https://via.placeholder.com/48'}
-                alt={item.productNameSnapshot}
-                className="w-12 h-12 object-cover rounded"
-              />
-              <div className="flex-1">
-                <p className="text-sm text-gray-800">{item.productNameSnapshot}</p>
-                {item.skuNameSnapshot && <p className="text-xs text-gray-500">{item.skuNameSnapshot}</p>}
-                <p className="text-xs text-gray-500">x{item.quantity}</p>
-              </div>
-              <p className="text-sm font-medium">{Number(item.subtotal).toLocaleString('vi-VN')}₫</p>
-            </div>
-          ))}
+      <div className="space-y-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="font-bold mb-3 flex items-center gap-2">
+            <Package size={18} className="text-red-500" />
+            Chọn sản phẩm cần đổi trả
+          </h2>
+          <div className="space-y-2">
+            {order?.items?.map((item: any) => (
+              <label key={item.id} className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                selectedItems.includes(item.id) ? 'border-red-400 bg-red-50' : 'border-gray-100 hover:border-gray-200'
+              }`}>
+                <input type="checkbox" checked={selectedItems.includes(item.id)} onChange={() => toggleItem(item.id)} className="text-red-500" />
+                <img src={item.sku?.product?.images?.[0]?.url || '/placeholder.jpg'} alt="" className="w-12 h-12 rounded object-cover bg-gray-100" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium line-clamp-1">{item.sku?.product?.name}</p>
+                  <p className="text-xs text-gray-500">x{item.quantity} — {Number(item.price).toLocaleString('vi-VN')}đ</p>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Return Form */}
-      <div className="card p-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Lý do đổi trả *</label>
-            <select
-              {...register('reason', { required: 'Vui lòng chọn lý do' })}
-              className="input mt-1"
-            >
-              <option value="">-- Chọn lý do --</option>
-              {RETURN_REASONS.map(reason => (
-                <option key={reason} value={reason}>{reason}</option>
-              ))}
-            </select>
-            {errors.reason && <p className="text-red-500 text-xs mt-1">{errors.reason.message}</p>}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="font-bold mb-3">Lý do đổi trả</h2>
+          <div className="space-y-1.5">
+            {RETURN_REASONS.map((r) => (
+              <label key={r} className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-colors ${
+                reason === r ? 'border-red-400 bg-red-50' : 'border-gray-100 hover:border-gray-200'
+              }`}>
+                <input type="radio" value={r} checked={reason === r} onChange={() => setReason(r)} className="text-red-500" />
+                <span className="text-sm">{r}</span>
+              </label>
+            ))}
           </div>
+        </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">Mô tả chi tiết *</label>
-            <textarea
-              {...register('description', { required: 'Vui lòng mô tả vấn đề' })}
-              rows={4}
-              className="input mt-1 resize-none"
-              placeholder="Mô tả chi tiết vấn đề bạn gặp phải với sản phẩm..."
-            />
-            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
-          </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="font-bold mb-3">Mô tả chi tiết (tùy chọn)</h2>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Mô tả vấn đề của bạn..."
+            rows={3}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200 resize-none"
+          />
+        </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-            <p className="font-medium mb-1">Lưu ý:</p>
-            <ul className="list-disc list-inside space-y-1 text-xs">
-              <li>Yêu cầu đổi trả phải được gửi trong vòng 7 ngày kể từ khi nhận hàng</li>
-              <li>Sản phẩm phải còn nguyên vẹn, chưa qua sử dụng (trừ trường hợp lỗi)</li>
-              <li>Đơn vị xử lý sẽ liên hệ với bạn trong vòng 24 giờ</li>
-            </ul>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="font-bold mb-3">Ảnh minh chứng (tối đa 5 ảnh)</h2>
+          <div className="flex gap-2 flex-wrap">
+            {previews.map((url, idx) => (
+              <div key={idx} className="relative">
+                <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                <button onClick={() => removeImage(idx)} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center">
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+            {previews.length < 5 && (
+              <button onClick={() => fileInputRef.current?.click()} className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-red-300 hover:text-red-400 transition-colors">
+                <Upload size={20} />
+                <span className="text-xs mt-1">Thêm ảnh</span>
+              </button>
+            )}
           </div>
+          <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
+        </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={createReturn.isPending}
-              className="btn-primary disabled:opacity-50"
-            >
-              {createReturn.isPending ? 'Đang gửi...' : 'Gửi yêu cầu đổi trả'}
-            </button>
-            <Link
-              to={`/orders/${id}`}
-              className="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
-            >
-              Hủy
-            </Link>
-          </div>
-        </form>
+        <button
+          onClick={() => submitMutation.mutate()}
+          disabled={!reason || selectedItems.length === 0 || submitMutation.isPending}
+          className="w-full py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {submitMutation.isPending ? <><Loader size={18} className="animate-spin" /> Đang gửi...</> : 'Gửi yêu cầu đổi trả'}
+        </button>
       </div>
     </div>
   );

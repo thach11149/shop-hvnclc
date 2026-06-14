@@ -90,6 +90,25 @@ import { PaymentService } from './modules/payment/payment.service';
 import { createPaymentRouter } from './modules/payment/payment.routes';
 import { startPayoutScheduler } from './jobs/payout.job';
 
+// New modules
+import { QnAService } from './modules/q-and-a/q-and-a.service';
+import { createQnARouter } from './modules/q-and-a/q-and-a.routes';
+
+import { AuditLogService } from './modules/audit-log/audit-log.service';
+import { createAuditLogRouter } from './modules/audit-log/audit-log.routes';
+
+import { AnnouncementService } from './modules/announcement/announcement.service';
+import { createAnnouncementRouter } from './modules/announcement/announcement.routes';
+
+import { SystemConfigService } from './modules/system-config/system-config.service';
+import { createSystemConfigRouter } from './modules/system-config/system-config.routes';
+
+import { LiveStreamService } from './modules/live-stream/live-stream.service';
+import { createLiveStreamRouter } from './modules/live-stream/live-stream.routes';
+
+import { ExportService } from './shared/services/export.service';
+import { createExportRouter } from './modules/export/export.routes';
+
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
 setNotificationPrisma(prisma);
@@ -159,6 +178,13 @@ const aiService = new AiService(prisma);
 const marketingService = new MarketingService(prisma);
 const notificationService = new NotificationService(prisma);
 const paymentService = new PaymentService(prisma);
+// New modules
+const qnaService = new QnAService(prisma);
+const auditLogService = new AuditLogService(prisma);
+const announcementService = new AnnouncementService(prisma);
+const systemConfigService = new SystemConfigService(prisma);
+const liveStreamService = new LiveStreamService(prisma);
+const exportService = new ExportService(prisma);
 
 // Routes
 const API_PREFIX = '/api/v1';
@@ -190,6 +216,13 @@ app.use(API_PREFIX, createMarketingRouter(marketingService));
 app.use(API_PREFIX, createNotificationRouter(notificationService));
 app.use(API_PREFIX, createPaymentRouter(paymentService));
 startPayoutScheduler(prisma);
+// New module routes
+app.use(API_PREFIX, createQnARouter(qnaService));
+app.use(API_PREFIX, createAuditLogRouter(auditLogService));
+app.use(API_PREFIX, createAnnouncementRouter(announcementService));
+app.use(API_PREFIX, createSystemConfigRouter(systemConfigService));
+app.use(API_PREFIX, createLiveStreamRouter(liveStreamService));
+app.use(API_PREFIX, createExportRouter(exportService));
 
 // 404 and error handlers
 app.use(notFoundHandler);

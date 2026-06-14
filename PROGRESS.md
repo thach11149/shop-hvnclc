@@ -172,11 +172,63 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] User: followShop toggle, getFollowedShops
 - [x] Bug fixes: dispute service (buyer relation), ai.service (Prisma field names)
 
+## Session 2026-06-14 (claude/kind-albattani-1qt4xk)
+
+### Backend — Completed ✅
+- [x] Prisma schema: thêm ProductQnA, Announcement, SystemConfig, LiveStream models
+- [x] Module Q&A: q-and-a.service.ts, q-and-a.routes.ts (buyer hỏi, seller trả lời)
+- [x] Module AuditLog: audit-log.service.ts, audit-log.routes.ts, audit-log.middleware.ts
+- [x] Module Announcement: announcement.service.ts, announcement.routes.ts
+- [x] Module SystemConfig: system-config.service.ts, system-config.routes.ts
+- [x] Module LiveStream: live-stream.service.ts, live-stream.routes.ts
+- [x] Module Export: export.routes.ts (xuất CSV đơn hàng/sản phẩm/tài chính)
+- [x] EmailService: nodemailer + templates (order-confirmed, order-shipped, dispute-update, welcome)
+- [x] CacheService: Redis wrapper với graceful fallback
+- [x] SocketService: Socket.io + auth + rooms + typing events
+- [x] ExportService: CSV export cho orders, products, finance
+- [x] app.ts: wire tất cả modules mới
+
+### Frontend Buyer-web — Completed ✅
+- [x] NotificationsPage (/account/notifications)
+- [x] PaymentMethodsPage (/account/payment)
+- [x] TrackingPage (/orders/:id/tracking)
+- [x] ReviewsPage (/account/reviews)
+- [x] ProductQnASection (component cho ProductDetailPage)
+- [x] LiveChatWidget (float chat widget với socket.io)
+- [x] CheckoutPage upgrade (chọn VNPay/MoMo/ZaloPay + redirect)
+- [x] PaymentResultPage upgrade (hiển thị đầy đủ thông tin giao dịch)
+- [x] ReturnRequestPage upgrade (upload ảnh, theo dõi tiến trình)
+
+### Frontend Seller-center — Completed ✅
+- [x] ReviewManagementPage (/reviews)
+- [x] QnAManagementPage (/qna)
+- [x] PayoutPage (/finance/payouts)
+- [x] InventoryAlertPage (/warehouse/alerts)
+- [x] OrderFulfillmentPage (/orders/fulfillment)
+- [x] ShopAnalyticsPage (/analytics) — charts + funnel
+- [x] SellerNotificationsPage (/notifications)
+- [x] LiveStreamPage (/live)
+
+### Frontend Admin-console — Completed ✅
+- [x] SystemConfigPage (/system/config) — key-value config management
+- [x] EmailTemplatesPage (/system/emails)
+- [x] PaymentConfigPage (/system/payment)
+- [x] AuditLogPage (/audit-logs)
+- [x] AnnouncementsPage (/announcements)
+- [x] BulkActionsPage (/products/bulk)
+
+### Shared Components — Completed ✅
+- [x] DataTable (sort, filter, pagination) — copied to all 3 frontends
+- [x] ImageUpload (drag-drop + preview + upload)
+- [x] RatingStars (interactive + readonly)
+- [x] ErrorBoundary + SkeletonCard/Text/Table
+- [x] useSocket hook (Socket.io + join/leave chat + typing)
+
 ## Pending / Future Work
-- [ ] Payment gateway integration (VNPay, MoMo, ZaloPay)
+- [ ] Payment gateway integration: cần cấu hình env vars (VNPAY_TMN_CODE, MOMO_PARTNER_CODE, ZALO_APP_ID)
 - [ ] Push notifications (Firebase FCM)
-- [ ] Email service (SMTP/SES)
-- [ ] Redis caching layer
+- [ ] Redis caching: cần cấu hình REDIS_URL env var
 - [ ] Elasticsearch integration for search
-- [ ] Product Q&A (hỏi đáp sản phẩm) - cần thêm model vào schema
 - [ ] Mobile app (React Native)
+- [ ] CategoryManagementPage nâng cấp — drag-drop, ảnh (admin)
+- [ ] Prisma migrate: cần chạy sau khi setup DB với schema mới

@@ -31,6 +31,12 @@ const ReferralPage = lazy(() => import('./pages/ReferralPage'));
 // Phase 4
 const AIShoppingAssistantPage = lazy(() => import('./pages/AIShoppingAssistantPage'));
 const RecommendationsPage = lazy(() => import('./pages/RecommendationsPage'));
+// New pages
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const PaymentMethodsPage = lazy(() => import('./pages/PaymentMethodsPage'));
+const TrackingPage = lazy(() => import('./pages/TrackingPage'));
+const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
+const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage'));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -81,6 +87,12 @@ export default function App() {
           {/* Phase 4 */}
           <Route path="/ai-assistant" element={<ProtectedRoute><AIShoppingAssistantPage /></ProtectedRoute>} />
           <Route path="/account/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
+          {/* New pages */}
+          <Route path="/account/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/account/payment" element={<ProtectedRoute><PaymentMethodsPage /></ProtectedRoute>} />
+          <Route path="/account/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
+          <Route path="/orders/:id/tracking" element={<ProtectedRoute><TrackingPage /></ProtectedRoute>} />
+          <Route path="/payment/result" element={<ProtectedRoute><PaymentResultPage /></ProtectedRoute>} />
         </Routes></Suspense></Layout>} path="/*" />
       </Routes>
     </Suspense>

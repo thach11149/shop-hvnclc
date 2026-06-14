@@ -36,6 +36,15 @@ const AIListingPage = lazy(() => import('./pages/AIListingPage'));
 const AIPricePage = lazy(() => import('./pages/AIPricePage'));
 const AIInventoryForecastPage = lazy(() => import('./pages/AIInventoryForecastPage'));
 const AdsOptimizationPage = lazy(() => import('./pages/AdsOptimizationPage'));
+// New pages
+const ReviewManagementPage = lazy(() => import('./pages/ReviewManagementPage'));
+const QnAManagementPage = lazy(() => import('./pages/QnAManagementPage'));
+const PayoutPage = lazy(() => import('./pages/PayoutPage'));
+const InventoryAlertPage = lazy(() => import('./pages/InventoryAlertPage'));
+const OrderFulfillmentPage = lazy(() => import('./pages/OrderFulfillmentPage'));
+const ShopAnalyticsPage = lazy(() => import('./pages/ShopAnalyticsPage'));
+const SellerNotificationsPage = lazy(() => import('./pages/SellerNotificationsPage'));
+const LiveStreamPage = lazy(() => import('./pages/LiveStreamPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -77,6 +86,15 @@ function ProtectedLayout() {
             <Route path="/ai/price" element={<AIPricePage />} />
             <Route path="/ai/inventory-forecast" element={<AIInventoryForecastPage />} />
             <Route path="/ai/ad-optimization" element={<AdsOptimizationPage />} />
+            {/* New pages */}
+            <Route path="/reviews" element={<ReviewManagementPage />} />
+            <Route path="/qna" element={<QnAManagementPage />} />
+            <Route path="/finance/payouts" element={<PayoutPage />} />
+            <Route path="/warehouse/alerts" element={<InventoryAlertPage />} />
+            <Route path="/orders/fulfillment" element={<OrderFulfillmentPage />} />
+            <Route path="/analytics" element={<ShopAnalyticsPage />} />
+            <Route path="/notifications" element={<SellerNotificationsPage />} />
+            <Route path="/live" element={<LiveStreamPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
