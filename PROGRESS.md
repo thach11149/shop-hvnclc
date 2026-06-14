@@ -224,11 +224,70 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] ErrorBoundary + SkeletonCard/Text/Table
 - [x] useSocket hook (Socket.io + join/leave chat + typing)
 
+## Session 2026-06-14 (claude/epic-fermi-oecesn)
+
+### Task 1 — Sidebar Navigation ✅
+- [x] Seller-center sidebar: thêm Reviews, QnA (Sản phẩm group), Fulfillment/InventoryAlerts (Vận hành), Payouts (Tài chính), LiveStream (Bán hàng & Marketing), Analytics (Thống kê), Notifications với unread badge
+- [x] Admin-console sidebar: thêm Bulk Actions (Quản lý sàn), Announcements (Vận hành), System group (Config/Emails/Payment), Audit Logs (Quản trị)
+
+### Task 2 — ProductDetailPage ✅
+- [x] Buyer-web ProductDetailPage: tích hợp ProductQnASection component
+- [x] RatingBreakdown widget: chart 5 mức sao với % từng mức (GET /products/:id/reviews?summary=true)
+- [x] RecommendationsWidget: horizontal scroll 4 sản phẩm tương tự (GET /ai/recommendations/product?productId=:id)
+
+### Task 3 — CategoryManagementPage ✅
+- [x] Admin-console CategoriesPage: tree view (nested indent + collapse/expand)
+- [x] Drag-drop reorder (HTML5 drag API)
+- [x] Modal form: tên, slug auto-gen, parent, upload ảnh (file + URL)
+- [x] Inline actions: edit, toggle active/inactive, delete (confirm dialog)
+- [x] Backend: GET /categories/tree (getCategoryTree), DELETE /admin/categories/:id, PATCH /admin/categories/reorder
+
+### Task 4 — SellerDashboard ✅
+- [x] Seller DashboardPage: metrics thật từ API (revenue today/week/month, orders by status, top 5 products)
+- [x] LineChart 30 ngày dùng recharts (so sánh với kỳ trước)
+- [x] Real-time Socket.io: lắng nghe event 'new-order', toast notification + update count
+- [x] Backend: GET /seller/analytics/revenue, /analytics/orders, /analytics/top-products, /analytics/revenue-chart
+
+### Task 5 — OrdersPage Seller ✅
+- [x] Advanced filters: search (orderNumber/email), date range, status multi-select
+- [x] Bulk actions: confirm (xác nhận đã giao), update tracking (modal + carrier select), print shipping label
+- [x] Shipping label modal: hiển thị thông tin đơn đầy đủ, nút in
+- [x] Pagination
+- [x] Backend: PATCH /seller/orders/bulk (confirm/deliver/tracking), GET /seller/orders/:id/shipping-label
+- [x] Improved getSellerOrders: supports search + date filters
+
+### Task 6 — SearchPage ✅
+- [x] Buyer-web SearchPage: autocomplete suggestions (GET /search/suggestions, debounce 300ms)
+- [x] Recent searches (localStorage)
+- [x] Filter panel: khoảng giá (preset + custom), đánh giá tối thiểu (1-5 sao)
+- [x] Sort: liên quan, bán chạy, giá asc/desc, mới nhất, đánh giá cao
+- [x] Active filter chips với clear buttons
+- [x] Pagination
+
+### Task 7 — Chat Nâng Cấp ✅
+- [x] Seller-center ChatPage: typing indicator (3 dots animation)
+- [x] Read receipts (tick xanh/xám)
+- [x] Online status (chấm xanh/xám theo userId)
+- [x] Tìm kiếm trong tin nhắn (search bar toggle)
+- [x] Upload file/ảnh (Paperclip button, POST /upload/image)
+- [x] Socket.io events: typing, stop-typing, user-online, user-offline, message-read
+- [x] Thread search filter
+
+### Task 8 — Admin Reports ✅
+- [x] Admin-console ReportsPage upgrade
+- [x] Real-time metrics panel: đơn đang xử lý, tranh chấp mở, seller chờ duyệt (GET /admin/analytics/realtime, refetch 30s)
+- [x] AreaChart doanh thu theo ngày (inline SVG, không cần recharts)
+- [x] Bar chart đơn theo trạng thái
+- [x] Top sellers table: GMV, số đơn, tỷ lệ hoàn thành (GET /admin/analytics/top-sellers)
+- [x] Top categories bar chart (GET /admin/analytics/top-categories)
+- [x] Growth badges (so sánh với kỳ trước)
+- [x] Backend: GET /admin/analytics/top-sellers, /top-categories, /realtime endpoints
+
 ## Pending / Future Work
 - [ ] Payment gateway integration: cần cấu hình env vars (VNPAY_TMN_CODE, MOMO_PARTNER_CODE, ZALO_APP_ID)
 - [ ] Push notifications (Firebase FCM)
 - [ ] Redis caching: cần cấu hình REDIS_URL env var
 - [ ] Elasticsearch integration for search
 - [ ] Mobile app (React Native)
-- [ ] CategoryManagementPage nâng cấp — drag-drop, ảnh (admin)
 - [ ] Prisma migrate: cần chạy sau khi setup DB với schema mới
+- [ ] npm install recharts trong admin-console (đã add vào package.json)

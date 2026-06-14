@@ -280,16 +280,35 @@ export class OrderService {
   }
 
   // SELLER
-  async getSellerOrders(shopId: string, query: { status?: OrderStatus; page?: number; limit?: number }) {
+  async getSellerOrders(shopId: string, query: { status?: OrderStatus; search?: string; fromDate?: string; toDate?: string; page?: number; limit?: number }) {
     const { page, limit, skip } = getPaginationParams(query);
-    const where = { shopId, ...(query.status && { status: query.status }) };
+    const where: any = {
+      shopId,
+      ...(query.status && { status: query.status }),
+      ...(query.fromDate || query.toDate ? {
+        createdAt: {
+          ...(query.fromDate && { gte: new Date(query.fromDate) }),
+          ...(query.toDate && { lte: new Date(query.toDate + 'T23:59:59Z') }),
+        }
+      } : {}),
+      ...(query.search && {
+        OR: [
+          { orderNumber: { contains: query.search, mode: 'insensitive' } },
+          { user: { email: { contains: query.search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { items: true, user: { select: { id: true, email: true } } },
+        include: {
+          items: { include: { product: { select: { name: true, images: { take: 1 } } } } },
+          user: { select: { id: true, email: true, buyerProfile: { select: { fullName: true, phone: true } } } },
+          shippingAddress: true,
+        },
       }),
       this.prisma.order.count({ where }),
     ]);
@@ -436,6 +455,159 @@ export class OrderService {
       grouped[item.shopId].push(item);
     }
     return grouped;
+  }
+
+  async getSellerAnalyticsRevenue(shopId: string, period: string) {
+    const now = new Date();
+    let fromDate: Date;
+    if (period === 'today') {
+      fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === 'week') {
+      fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else {
+      fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+    const orders = await this.prisma.order.findMany({
+      where: { shopId, status: { not: OrderStatus.CANCELLED }, createdAt: { gte: fromDate } },
+      select: { totalAmount: true, createdAt: true },
+    });
+    const revenue = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    return { period, revenue, ordersCount: orders.length };
+  }
+
+  async getSellerAnalyticsOrders(shopId: string) {
+    const statuses = ['AWAITING_SELLER_CONFIRM', 'SELLER_CONFIRMED', 'PACKED', 'HANDED_TO_CARRIER', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
+    const counts = await Promise.all(
+      statuses.map(async s => {
+        const count = await this.prisma.order.count({ where: { shopId, status: s as OrderStatus } });
+        return { status: s, count };
+      })
+    );
+    return counts;
+  }
+
+  async getSellerTopProducts(shopId: string) {
+    const items = await this.prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: { order: { shopId, status: { notIn: [OrderStatus.CANCELLED] } } },
+      _sum: { quantity: true, subtotal: true },
+      orderBy: { _sum: { subtotal: 'desc' } },
+      take: 5,
+    });
+    const productIds = items.map(i => i.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, images: { take: 1 } },
+    });
+    return items.map(item => ({
+      ...item,
+      product: products.find(p => p.id === item.productId),
+    }));
+  }
+
+  async getSellerRevenue30Days(shopId: string) {
+    const days = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      d.setHours(0, 0, 0, 0);
+      return d;
+    });
+    const orders = await this.prisma.order.findMany({
+      where: {
+        shopId,
+        status: { notIn: [OrderStatus.CANCELLED] },
+        createdAt: { gte: days[0] },
+      },
+      select: { totalAmount: true, createdAt: true },
+    });
+    const prevFrom = new Date(days[0].getTime() - 30 * 24 * 60 * 60 * 1000);
+    const prevOrders = await this.prisma.order.findMany({
+      where: {
+        shopId,
+        status: { notIn: [OrderStatus.CANCELLED] },
+        createdAt: { gte: prevFrom, lt: days[0] },
+      },
+      select: { totalAmount: true, createdAt: true },
+    });
+    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+    const daily = days.map(d => {
+      const dateStr = toDateStr(d);
+      const current = orders.filter(o => toDateStr(new Date(o.createdAt)) === dateStr)
+        .reduce((s, o) => s + Number(o.totalAmount), 0);
+      const prevDate = new Date(d.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const prevDateStr = toDateStr(prevDate);
+      const previous = prevOrders.filter(o => toDateStr(new Date(o.createdAt)) === prevDateStr)
+        .reduce((s, o) => s + Number(o.totalAmount), 0);
+      return { date: dateStr, current, previous };
+    });
+    return daily;
+  }
+
+  async bulkUpdateOrders(shopId: string, orderIds: string[], action: string, data: any) {
+    const orders = await this.prisma.order.findMany({
+      where: { id: { in: orderIds }, shopId },
+    });
+    if (orders.length !== orderIds.length) throw new AppError('Some orders not found or not yours', 400);
+
+    if (action === 'confirm') {
+      await this.prisma.order.updateMany({
+        where: { id: { in: orderIds }, shopId, status: OrderStatus.AWAITING_SELLER_CONFIRM },
+        data: { status: OrderStatus.SELLER_CONFIRMED },
+      });
+    } else if (action === 'deliver') {
+      await this.prisma.order.updateMany({
+        where: { id: { in: orderIds }, shopId },
+        data: { status: OrderStatus.DELIVERED },
+      });
+      await Promise.all(orderIds.map(id =>
+        this.prisma.shipment.upsert({
+          where: { orderId: id },
+          create: { id: uuidv4(), orderId: id, deliveredAt: new Date(), status: 'DELIVERED' as any },
+          update: { deliveredAt: new Date(), status: 'DELIVERED' as any },
+        })
+      ));
+    } else if (action === 'tracking') {
+      await Promise.all(orderIds.map(id =>
+        this.prisma.shipment.upsert({
+          where: { orderId: id },
+          create: { id: uuidv4(), orderId: id, trackingNumber: data.trackingCode, carrierId: data.carrierId || undefined, status: 'PICKED_UP' as any },
+          update: { trackingNumber: data.trackingCode, ...(data.carrierId && { carrierId: data.carrierId }) },
+        })
+      ));
+    }
+    return { updated: orderIds.length };
+  }
+
+  async getShippingLabel(orderId: string, shopId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, shopId },
+      include: {
+        user: { select: { email: true, buyerProfile: { select: { fullName: true, phone: true } } } },
+        items: { include: { product: { select: { name: true } } } },
+        shipment: { select: { trackingNumber: true } },
+        shop: { select: { name: true, addressLine: true, province: true, phone: true } },
+      },
+    });
+    if (!order) throw new AppError('Order not found', 404);
+    const snapshot = (order.shippingAddressSnapshot || {}) as any;
+    return {
+      orderNumber: order.orderNumber,
+      trackingCode: order.shipment?.trackingNumber,
+      sender: {
+        name: (order.shop as any)?.name,
+        address: [(order.shop as any)?.addressLine, (order.shop as any)?.province].filter(Boolean).join(', '),
+        phone: (order.shop as any)?.phone,
+      },
+      recipient: {
+        name: order.user?.buyerProfile?.fullName || order.user?.email,
+        phone: order.user?.buyerProfile?.phone || snapshot.phone,
+        address: [snapshot.address, snapshot.ward, snapshot.district, snapshot.province].filter(Boolean).join(', '),
+      },
+      items: order.items.map((i: any) => ({ name: i.product?.name || i.productName, quantity: i.quantity })),
+      totalAmount: order.totalAmount,
+      codAmount: order.paymentMethod === 'COD' ? order.totalAmount : 0,
+      createdAt: order.createdAt,
+    };
   }
 
   private calculateShippingFee(subtotal: number, _province: string): number {

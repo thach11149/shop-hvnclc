@@ -56,6 +56,29 @@ export function createAnalyticsRouter(analyticsService: AnalyticsService) {
     }
   );
 
+  router.get('/admin/analytics/top-sellers', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR', 'ADMIN_FINANCE'),
+    withCache(300),
+    async (req, res) => {
+      const result = await analyticsService.getTopSellers(Number(req.query.days) || 30, Number(req.query.limit) || 10);
+      sendSuccess(res, result);
+    }
+  );
+
+  router.get('/admin/analytics/top-categories', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR', 'ADMIN_FINANCE'),
+    withCache(300),
+    async (req, res) => {
+      const result = await analyticsService.getTopCategories(Number(req.query.days) || 30, Number(req.query.limit) || 10);
+      sendSuccess(res, result);
+    }
+  );
+
+  router.get('/admin/analytics/realtime', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR'),
+    async (_req, res) => {
+      const result = await analyticsService.getRealtimeMetrics();
+      sendSuccess(res, result);
+    }
+  );
+
   router.get('/admin/fraud/cases/summary', authenticate, authorize('SUPER_ADMIN', 'ADMIN_OPERATOR'),
     withCache(60),
     async (_req, res) => {

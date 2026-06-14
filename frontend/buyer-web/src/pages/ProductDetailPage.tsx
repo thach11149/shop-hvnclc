@@ -1,10 +1,113 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ShoppingCart, Heart, Star, Minus, Plus, Store } from 'lucide-react';
+import { ShoppingCart, Heart, Star, Minus, Plus, Store, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../api/client';
 import { useAuthStore } from '../store/auth.store';
+import ProductQnASection from '../components/product/ProductQnASection';
+
+function RatingBreakdown({ productId }: { productId: string }) {
+  const { data } = useQuery({
+    queryKey: ['product-review-summary', productId],
+    queryFn: () => apiClient.get(`/products/${productId}/reviews`, { params: { summary: true, limit: 0 } }).then(r => r.data.data),
+    enabled: !!productId,
+  });
+
+  const summary = data?.summary;
+  if (!summary) return null;
+
+  const avgRating = summary.avgRating || 0;
+  const total = summary.total || 0;
+  const counts: Record<string, number> = summary.counts || {};
+
+  return (
+    <div className="flex gap-6 items-start py-4">
+      <div className="text-center">
+        <div className="text-5xl font-bold text-orange-500">{Number(avgRating).toFixed(1)}</div>
+        <div className="flex justify-center mt-1">
+          {[1,2,3,4,5].map(i => (
+            <Star key={i} size={14} className={i <= Math.round(avgRating) ? 'fill-orange-400 text-orange-400' : 'text-gray-300'} />
+          ))}
+        </div>
+        <div className="text-xs text-gray-500 mt-1">{total} đánh giá</div>
+      </div>
+      <div className="flex-1 space-y-1.5">
+        {[5,4,3,2,1].map(star => {
+          const count = counts[star] || 0;
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          return (
+            <div key={star} className="flex items-center gap-2 text-sm">
+              <span className="text-gray-600 w-4">{star}</span>
+              <Star size={12} className="fill-orange-400 text-orange-400 flex-shrink-0" />
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              </div>
+              <span className="text-gray-500 w-8 text-right">{pct}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RecommendationsWidget({ productId }: { productId: string }) {
+  const [scrollIdx, setScrollIdx] = useState(0);
+
+  const { data } = useQuery({
+    queryKey: ['product-recommendations', productId],
+    queryFn: () =>
+      apiClient.get('/ai/recommendations/product', { params: { productId } }).then(r => r.data.data?.products || []),
+    enabled: !!productId,
+  });
+
+  const items: any[] = data || [];
+  if (items.length === 0) return null;
+
+  const visible = items.slice(scrollIdx, scrollIdx + 4);
+
+  return (
+    <div className="card p-6 mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">Sản phẩm tương tự</h2>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setScrollIdx(Math.max(0, scrollIdx - 4))}
+            disabled={scrollIdx === 0}
+            className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={() => setScrollIdx(Math.min(items.length - 4, scrollIdx + 4))}
+            disabled={scrollIdx + 4 >= items.length}
+            className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {visible.map((p: any) => (
+          <Link key={p.id} to={`/products/${p.slug}`} className="group block">
+            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-2">
+              <img
+                src={p.images?.[0]?.url || 'https://via.placeholder.com/200'}
+                alt={p.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
+            </div>
+            <p className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-primary-600">{p.name}</p>
+            <p className="text-primary-600 font-bold text-sm mt-1">
+              {Number(p.minPrice || 0).toLocaleString('vi-VN')}₫
+            </p>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -76,7 +179,7 @@ export default function ProductDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
 
-          {/* Rating */}
+          {/* Rating summary */}
           <div className="flex items-center gap-2 mb-4">
             <div className="flex">
               {[1,2,3,4,5].map(i => (
@@ -175,11 +278,12 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Reviews */}
+      {/* Reviews with rating breakdown */}
       <div className="card p-6 mt-6">
-        <h2 className="text-lg font-bold mb-4">Đánh giá ({product._count?.reviews})</h2>
+        <h2 className="text-lg font-bold mb-2">Đánh giá ({product._count?.reviews})</h2>
+        <RatingBreakdown productId={product.id} />
         {product.reviews?.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 mt-4">
             {product.reviews.map((review: any) => (
               <div key={review.id} className="border-b pb-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -200,9 +304,17 @@ export default function ProductDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-sm">Chưa có đánh giá nào</p>
+          <p className="text-gray-500 text-sm mt-4">Chưa có đánh giá nào</p>
         )}
       </div>
+
+      {/* Q&A Section */}
+      <div className="card p-6 mt-6">
+        <ProductQnASection productId={product.id} />
+      </div>
+
+      {/* Recommendations */}
+      <RecommendationsWidget productId={product.id} />
     </div>
   );
 }

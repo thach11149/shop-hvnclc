@@ -42,12 +42,49 @@ export class CatalogService {
     return category;
   }
 
-  async updateCategory(id: string, data: Partial<{ name: string; description: string; image: string; position: number; isActive: boolean }>, actorId: string) {
+  async updateCategory(id: string, data: Partial<{ name: string; slug: string; description: string; image: string; position: number; isActive: boolean; parentId: string }>, actorId: string) {
     const old = await this.prisma.category.findUnique({ where: { id } });
     if (!old) throw new AppError('Category not found', 404);
     const updated = await this.prisma.category.update({ where: { id }, data });
     await publishAuditLog({ actorId, actorType: 'admin', action: 'update', entityType: 'category', entityId: id, oldValue: old, newValue: data });
     return updated;
+  }
+
+  async deleteCategory(id: string, actorId: string) {
+    const cat = await this.prisma.category.findUnique({ where: { id }, include: { _count: { select: { products: true, children: true } } } });
+    if (!cat) throw new AppError('Category not found', 404);
+    if ((cat._count?.products || 0) > 0) throw new AppError('Cannot delete category with products', 400);
+    if ((cat._count?.children || 0) > 0) throw new AppError('Cannot delete category with sub-categories', 400);
+    await this.prisma.category.delete({ where: { id } });
+    await publishAuditLog({ actorId, actorType: 'admin', action: 'delete', entityType: 'category', entityId: id });
+  }
+
+  async getCategoryTree() {
+    const all = await this.prisma.category.findMany({
+      where: { isActive: true },
+      include: {
+        _count: { select: { products: true } },
+      },
+      orderBy: { position: 'asc' },
+    });
+    const map = new Map<string, any>();
+    const roots: any[] = [];
+    all.forEach(c => map.set(c.id, { ...c, children: [] }));
+    all.forEach(c => {
+      if (c.parentId && map.has(c.parentId)) {
+        map.get(c.parentId).children.push(map.get(c.id));
+      } else {
+        roots.push(map.get(c.id));
+      }
+    });
+    return roots;
+  }
+
+  async reorderCategories(ids: string[], actorId: string) {
+    await Promise.all(ids.map((id, idx) =>
+      this.prisma.category.update({ where: { id }, data: { position: idx } })
+    ));
+    await publishAuditLog({ actorId, actorType: 'admin', action: 'update', entityType: 'category', entityId: 'bulk', newValue: { reordered: ids } });
   }
 
   // ---- PRODUCTS (BUYER) ----
