@@ -1,7 +1,7 @@
 # ROUTINE PROMPT — Copy toàn bộ file này khi tạo Claude Routine
 
 > File này được cập nhật mỗi ngày trước khi chạy routine.
-> Xem lịch sử kế hoạch theo ngày tại thư mục `plans/`.
+> Xem lịch sử kế hoạch tại thư mục `plans/`.
 
 ---
 
@@ -19,30 +19,33 @@ cat PROGRESS.md 2>/dev/null || echo "No progress file"
 
 ## BƯỚC 2 — Đọc kế hoạch hôm nay
 
-Đọc file `plans/TODAY.md` để biết nhiệm vụ cụ thể của session này.
-Đọc `PROGRESS.md` để biết đã làm đến đâu — những gì đã ✅ thì bỏ qua hoàn toàn.
+Đọc `plans/TODAY.md` để biết tóm tắt.
+Đọc `plans/2026-06-15.md` để biết yêu cầu chức năng cụ thể của từng task.
+Đọc `PROGRESS.md` — những gì đã ✅ thì bỏ qua hoàn toàn.
 
-## BƯỚC 3 — Tạo branch đúng cách
+## BƯỚC 3 — Tạo branch
 
-- Nếu có branch `claude/xxx` chưa merge trên remote → tạo branch mới TỪ branch đó
-- Nếu không có WIP branch → tạo từ `origin/main` mới nhất
+- Có branch `claude/xxx` chưa merge → tạo từ branch đó
+- Không có WIP → tạo từ `origin/main` mới nhất
 
 ## BƯỚC 4 — Triển khai
 
-- Tự code, tự xử lý lỗi, tự quyết định — **không hỏi lại cho tới khi hết token**
-- Nếu gặp vấn đề không giải quyết được: ghi vào `ERRORS_AND_SOLUTIONS.md` và làm tiếp item tiếp theo
-- Commit và push sau mỗi module hoàn thành
-- Cập nhật `PROGRESS.md` sau mỗi item xong
+- **Không hỏi lại, không chờ phản hồi** cho tới khi hết token
+- Làm đúng yêu cầu chức năng ghi trong plan — không viết placeholder
+- Nếu gặp blocker không giải quyết được: ghi vào `ERRORS_AND_SOLUTIONS.md`, bỏ qua task đó, làm task tiếp theo
+- Commit sau mỗi task xong, cập nhật `PROGRESS.md`
+- Xong **nhóm chính** → tự động làm tiếp **nhóm dự phòng**
 
-## BƯỚC 5 — Khi sắp hết token hoặc cần dừng
+## BƯỚC 5 — Khi sắp hết token
 
-Bắt buộc theo thứ tự:
-1. `git add -A && git commit -m "wip: dừng tại [X]" && git push origin <branch>`
-2. Cập nhật `HANDOFF.md` — đã làm gì (commit hash), đang dở gì, chưa làm gì
-3. Cập nhật `PROGRESS.md`
-4. `git add HANDOFF.md PROGRESS.md && git commit -m "docs: cập nhật handoff" && git push`
+```bash
+git add -A
+git commit -m "wip: dừng tại [task đang làm]"
+git push origin <branch>
+# Cập nhật HANDOFF.md + PROGRESS.md rồi push thêm 1 commit
+```
 
-## BƯỚC 6 — Kết thúc session
+## BƯỚC 6 — Kết thúc
 
 ```bash
 gh pr create --base main --head <branch> --title "feat: [mô tả]" --body "..."
@@ -51,58 +54,20 @@ Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## NHIỆM VỤ HÔM NAY — 2026-06-14
+## NHIỆM VỤ HÔM NAY — 2026-06-15
 
-> Xem chi tiết đầy đủ tại `plans/2026-06-14.md`
+> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15.md`
 
-**Phạm vi:** Backend + Frontend toàn bộ (1 agent, không conflict)
-**Mục tiêu:** ~15,000 dòng code — hoàn thiện tính năng còn thiếu
+### Nhóm chính (bắt buộc)
 
-### Thứ tự ưu tiên:
+- [ ] **Task 1 — Sidebar navigation**: thêm 14 trang mới vào sidebar seller-center và admin-console
+- [ ] **Task 2 — ProductDetailPage**: tích hợp Q&A section, rating chart, recommendations widget
+- [ ] **Task 3 — CategoryManagementPage**: tree view, inline edit, drag reorder, upload ảnh
+- [ ] **Task 4 — SellerDashboard**: metrics API thật, LineChart 30 ngày, real-time Socket.io
+- [ ] **Task 5 — OrdersPage seller**: filter nâng cao, bulk actions (tracking, in phiếu)
 
-**NHÓM 1 — Backend** (làm trước để frontend có API)
-- [ ] Prisma schema: thêm model `ProductQnA`, `AuditLog` → chạy `prisma migrate`
-- [ ] Module Product Q&A: `q-and-a.service.ts`, `q-and-a.routes.ts`, wire `app.ts`
-- [ ] Module Audit Log: `audit-log.service.ts`, `audit-log.routes.ts`, middleware tự động log
-- [ ] Payment gateway: `vnpay.service.ts`, `momo.service.ts`, `zalopay.service.ts` + webhook handlers
-- [ ] Email templates: order-confirmed, order-shipped, dispute-update, welcome (nodemailer)
-- [ ] Redis caching: `cache.service.ts` + apply vào product detail / search / recommendations
-- [ ] Export CSV/Excel: orders, products, finance (admin + seller)
-- [ ] WebSocket: Socket.io setup, real-time chat + notifications, seller online/offline
+### Nhóm dự phòng (nếu còn token)
 
-**NHÓM 2 — Frontend Buyer-web**
-- [ ] NotificationsPage `/account/notifications`
-- [ ] PaymentMethodsPage `/account/payment`
-- [ ] TrackingPage `/orders/:id/tracking`
-- [ ] ProductQnASection (component nhúng vào ProductDetailPage)
-- [ ] ReviewsPage `/account/reviews`
-- [ ] CheckoutPage nâng cấp — tích hợp chọn payment gateway
-- [ ] PaymentResultPage — làm thật (đang là skeleton)
-- [ ] ReturnRequestPage nâng cấp — upload ảnh, theo dõi tiến trình
-- [ ] LiveChatWidget — float chat với seller qua Socket.io
-
-**NHÓM 3 — Frontend Seller-center**
-- [ ] ReviewManagementPage `/reviews`
-- [ ] QnAManagementPage `/qna`
-- [ ] PayoutPage `/finance/payouts`
-- [ ] InventoryAlertPage `/warehouse/alerts`
-- [ ] OrderFulfillmentPage `/orders/fulfillment` — in phiếu, cập nhật tracking hàng loạt
-- [ ] ShopAnalyticsPage nâng cấp — chart doanh thu, funnel
-- [ ] NotificationsPage `/notifications`
-- [ ] LiveStreamPage `/live` — UI quản lý buổi live
-
-**NHÓM 4 — Frontend Admin-console**
-- [ ] SystemConfigPage `/system/config`
-- [ ] EmailTemplatesPage `/system/emails`
-- [ ] PaymentConfigPage `/system/payment`
-- [ ] AuditLogPage `/audit-logs`
-- [ ] AnnouncementsPage `/announcements`
-- [ ] CategoryManagementPage nâng cấp — drag-drop, ảnh
-- [ ] BulkActionsPage `/products/bulk`
-
-**NHÓM 5 — Shared**
-- [ ] DataTable component (sort/filter/pagination)
-- [ ] ImageUpload component (drag-drop + preview)
-- [ ] RatingStars interactive component
-- [ ] WebSocket hook cho real-time
-- [ ] Error boundary + Skeleton loading
+- [ ] **Task 6 — SearchPage**: filter giá/rating/thương hiệu, autocomplete, sort
+- [ ] **Task 7 — Chat nâng cấp**: typing indicator, read receipts, online status, file upload
+- [ ] **Task 8 — Admin Reports**: charts doanh thu platform, top sellers, top categories
