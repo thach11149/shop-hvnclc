@@ -138,6 +138,86 @@ export class AnalyticsService {
     };
   }
 
+  async getTopSellers(days: number, limit = 10) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const groups = await this.prisma.order.groupBy({
+      by: ['shopId'],
+      where: { status: { in: ['COMPLETED', 'DELIVERED'] }, createdAt: { gte: since } },
+      _sum: { totalAmount: true },
+      _count: true,
+      orderBy: { _sum: { totalAmount: 'desc' } },
+      take: limit,
+    });
+    const shopIds = groups.map(g => g.shopId);
+    const shops = await this.prisma.shop.findMany({
+      where: { id: { in: shopIds } },
+      select: { id: true, name: true, slug: true },
+    });
+    const cancelCounts = await this.prisma.order.groupBy({
+      by: ['shopId'],
+      where: { shopId: { in: shopIds }, status: 'CANCELLED', createdAt: { gte: since } },
+      _count: true,
+    });
+    const cancelMap = Object.fromEntries(cancelCounts.map(c => [c.shopId, c._count]));
+    return groups.map(g => {
+      const shop = shops.find(s => s.id === g.shopId);
+      const totalOrders = g._count + (cancelMap[g.shopId] || 0);
+      const completionRate = totalOrders > 0 ? ((g._count / totalOrders) * 100).toFixed(1) : '100';
+      return {
+        shopId: g.shopId,
+        shopName: shop?.name || 'Unknown',
+        shopSlug: shop?.slug,
+        gmv: Number(g._sum?.totalAmount || 0),
+        ordersCount: g._count,
+        completionRate: Number(completionRate),
+      };
+    });
+  }
+
+  async getTopCategories(days: number, limit = 10) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const items = await this.prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: { order: { status: { in: ['COMPLETED', 'DELIVERED'] }, createdAt: { gte: since } } },
+      _sum: { subtotal: true, quantity: true },
+      orderBy: { _sum: { subtotal: 'desc' } },
+      take: 100,
+    });
+    const productIds = items.map(i => i.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, categoryId: true },
+    });
+    const catMap: Record<string, { revenue: number; orders: number }> = {};
+    items.forEach(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (!product?.categoryId) return;
+      if (!catMap[product.categoryId]) catMap[product.categoryId] = { revenue: 0, orders: 0 };
+      catMap[product.categoryId].revenue += Number(item._sum?.subtotal || 0);
+      catMap[product.categoryId].orders += item._sum?.quantity || 0;
+    });
+    const catIds = Object.keys(catMap);
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: catIds } },
+      select: { id: true, name: true },
+    });
+    return categories
+      .map(cat => ({ ...catMap[cat.id], categoryId: cat.id, categoryName: cat.name }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, limit);
+  }
+
+  async getRealtimeMetrics() {
+    const now = new Date();
+    const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    const [processingOrders, openDisputes, pendingSellers] = await Promise.all([
+      this.prisma.order.count({ where: { status: { in: ['AWAITING_SELLER_CONFIRM', 'SELLER_CONFIRMED', 'PACKED', 'SHIPPING'] } } }),
+      this.prisma.dispute.count({ where: { status: { in: ['open', 'under_review'] } } }),
+      this.prisma.shop.count({ where: { status: 'PENDING_APPROVAL' } }),
+    ]);
+    return { processingOrders, openDisputes, pendingSellers, timestamp: now };
+  }
+
   async getFraudCasesSummary() {
     const [total, open, resolved] = await Promise.all([
       this.prisma.fraudCase.count(),

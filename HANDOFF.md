@@ -1,65 +1,56 @@
 # HANDOFF — 2026-06-14
 
-## Branch: claude/kind-albattani-1qt4xk
+## Branch: claude/epic-fermi-oecesn
 
 ---
 
 ## Đã hoàn thành trong session này
 
-| Module | Commit | Mô tả |
-|--------|--------|-------|
-| Backend modules | 06f73c7 | Q&A, AuditLog, Announcement, SystemConfig, LiveStream, Export, Email, Redis, Socket |
-| Buyer-web pages | 06b8fd6 | 4 trang mới + 3 trang nâng cấp + 2 components mới |
-| Seller-center pages | 409ca1f | 8 trang mới |
-| Admin-console + shared | 274d9ea | 6 trang mới + 5 shared components |
+| Task | Commit | Mô tả |
+|------|--------|-------|
+| Task 1-5 | a200b43 | Sidebar, ProductDetail, CategoryTree, SellerDashboard, OrdersPage |
+| Task 6-8 + Docs | (commit hiện tại) | SearchPage, Chat nâng cấp, Admin Reports, PROGRESS+HANDOFF update |
 
 ---
 
-## Files quan trọng đã thay đổi
+## Files thay đổi
 
 ### Backend
-- `backend/prisma/schema.prisma` — thêm: ProductQnA, Announcement, SystemConfig, LiveStream
-- `backend/src/modules/q-and-a/` — Q&A service + routes
-- `backend/src/modules/audit-log/` — AuditLog service + routes + middleware  
-- `backend/src/modules/announcement/` — Announcement service + routes
-- `backend/src/modules/system-config/` — SystemConfig service + routes
-- `backend/src/modules/live-stream/` — LiveStream service + routes
-- `backend/src/modules/export/export.routes.ts` — Export CSV routes
-- `backend/src/shared/services/email.service.ts`
-- `backend/src/shared/services/cache.service.ts`
-- `backend/src/shared/services/socket.service.ts`
-- `backend/src/shared/services/export.service.ts`
-- `backend/src/app.ts` — wire tất cả module mới
-
-### Frontend Buyer-web
-- Trang mới: NotificationsPage, PaymentMethodsPage, TrackingPage, ReviewsPage
-- Nâng cấp: CheckoutPage, PaymentResultPage, ReturnRequestPage
-- Component mới: ProductQnASection, LiveChatWidget, DataTable, ImageUpload, RatingStars, ErrorBoundary
-- Hook mới: useSocket.ts
+- `backend/src/modules/catalog/catalog.routes.ts` — GET /categories/tree, DELETE /admin/categories/:id, PATCH /admin/categories/reorder
+- `backend/src/modules/catalog/catalog.service.ts` — getCategoryTree(), deleteCategory(), reorderCategories()
+- `backend/src/modules/order/order.routes.ts` — PATCH /seller/orders/bulk, GET /seller/orders/:id/shipping-label, GET /seller/analytics/*, improved GET /seller/orders
+- `backend/src/modules/order/order.service.ts` — analytics methods, bulkUpdateOrders(), getShippingLabel(), improved getSellerOrders()
+- `backend/src/modules/analytics/analytics.routes.ts` — GET /admin/analytics/top-sellers, /top-categories, /realtime
+- `backend/src/modules/analytics/analytics.service.ts` — getTopSellers(), getTopCategories(), getRealtimeMetrics()
 
 ### Frontend Seller-center
-- Trang mới: ReviewManagementPage, QnAManagementPage, PayoutPage, InventoryAlertPage, OrderFulfillmentPage, ShopAnalyticsPage, SellerNotificationsPage, LiveStreamPage
-- Component mới: DataTable, ImageUpload, RatingStars, ErrorBoundary
+- `src/components/layout/Sidebar.tsx` — Reviews, QnA, Fulfillment, Alerts, Payouts, LiveStream, Analytics, Notifications (badge)
+- `src/pages/DashboardPage.tsx` — metrics thật từ API, LineChart 30 ngày (recharts), Socket.io real-time
+- `src/pages/OrdersPage.tsx` — advanced filters, bulk actions, shipping label modal, pagination
+- `src/pages/ChatPage.tsx` — typing indicator, read receipts, online status, file upload, message search
 
 ### Frontend Admin-console
-- Fix: App.tsx (xóa duplicate imports/routes)
-- Trang mới: SystemConfigPage, EmailTemplatesPage, PaymentConfigPage, AuditLogPage, AnnouncementsPage, BulkActionsPage
-- Component mới: DataTable, ImageUpload, ErrorBoundary
+- `src/components/layout/Sidebar.tsx` — BulkActions, Announcements, System (Config/Emails/Payment), AuditLogs
+- `src/pages/CategoriesPage.tsx` — tree view, drag-drop, modal form + image upload, delete confirm
+- `src/pages/ReportsPage.tsx` — real-time metrics, area chart, top sellers, top categories
+- `package.json` — thêm recharts
+
+### Frontend Buyer-web
+- `src/pages/ProductDetailPage.tsx` — Q&A section, rating breakdown, recommendations widget
+- `src/pages/SearchPage.tsx` — autocomplete, recent searches, filter panel (giá/rating), sort, pagination
 
 ---
 
 ## Chưa làm / Cần làm tiếp
 
-- [ ] `prisma migrate` — cần run sau khi DATABASE_URL đã cấu hình (schema đã update)
-- [ ] Install packages: `npm install socket.io nodemailer redis` (backend), `npm install socket.io-client` (buyer-web)
-- [ ] Cấu hình env vars: VNPAY_TMN_CODE, MOMO_PARTNER_CODE, ZALO_APP_ID, REDIS_URL, SMTP_USER/PASS
-- [ ] CategoryManagementPage nâng cấp — drag-drop, ảnh (admin)
-- [ ] Seller sidebar/admin sidebar: thêm links cho các trang mới vào navigation
+- [ ] `cd frontend/admin-console && npm install` — cài recharts (đã thêm vào package.json)
+- [ ] Prisma migrate/generate sau khi setup DATABASE_URL
+- [ ] Cấu hình env: REDIS_URL, SMTP_USER/PASS, VNPAY/MOMO/ZALO keys
 
-## Ghi chú
+## Ghi chú kỹ thuật
 
-1. Socket.io sử dụng dynamic import (`socket.io-client`) trong useSocket.ts
-2. EmailService log thay vì gửi thật nếu không có SMTP_USER env var
-3. CacheService graceful fallback nếu không có REDIS_URL
-4. Admin-console App.tsx đã được fix (xóa duplicate imports)
-5. Schema mới cần `prisma generate` sau `migrate`
+1. `GET /categories/tree` đặt TRƯỚC `GET /categories/:slug` — tránh route conflict (đã đúng)
+2. Socket.io dùng dynamic import — tự skip nếu package chưa install
+3. ShippingLabel dùng `shippingAddressSnapshot` JSON (Order không có Address relation)
+4. Seller analytics cần user có `shopId` (đã là seller)
+5. Admin-console recharts: thêm vào package.json, cần npm install
