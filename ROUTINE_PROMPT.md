@@ -20,7 +20,7 @@ cat PROGRESS.md 2>/dev/null || echo "No progress file"
 ## BƯỚC 2 — Đọc kế hoạch hôm nay
 
 Đọc `plans/TODAY.md` để biết tóm tắt.
-Đọc `plans/2026-06-14.md` để biết yêu cầu chức năng cụ thể của từng task.
+Đọc `plans/2026-06-15.md` để biết yêu cầu chức năng cụ thể của từng task.
 Đọc `PROGRESS.md` — những gì đã ✅ thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch
@@ -54,20 +54,21 @@ Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## NHIỆM VỤ HÔM NAY — 2026-06-14
+## NHIỆM VỤ HÔM NAY — 2026-06-15
 
-> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-14.md`
+> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15.md`
 
 ### Nhóm chính (bắt buộc)
 
-- [ ] **Task 1 — Sidebar navigation**: thêm 14 trang mới vào sidebar seller-center và admin-console
-- [ ] **Task 2 — ProductDetailPage**: tích hợp Q&A section, rating chart, recommendations widget
-- [ ] **Task 3 — CategoryManagementPage**: tree view, inline edit, drag reorder, upload ảnh
-- [ ] **Task 4 — SellerDashboard**: metrics API thật, LineChart 30 ngày, real-time Socket.io
-- [ ] **Task 5 — OrdersPage seller**: filter nâng cao, bulk actions (tracking, in phiếu)
+- [ ] **Task 1 — HomePage buyer-web**: banner carousel auto-play, flash sale countdown, danh mục nổi bật, AI recommendations, sản phẩm bán chạy
+- [ ] **Task 2 — ProductsPage + CategoryPage**: filter sidebar (giá/rating/category/freeship), grid/list toggle, sort, URL sync, breadcrumb, subcategories
+- [ ] **Task 3 — AccountPage buyer-web**: 4 tabs — hồ sơ (avatar upload + edit form), bảo mật (đổi mật khẩu), địa chỉ CRUD, đơn hàng gần đây
+- [ ] **Task 4 — Admin DashboardPage + OrdersPage**: KPI cards thật, AreaChart 30 ngày, recent orders/users, OrdersPage filter/search/export
+- [ ] **Task 5 — Admin SellersPage + UsersPage**: filter nâng cao, bulk approve/suspend/ban, confirm dialogs, row actions
+- [ ] **Task 6 — Seller FinancePage + ReportsPage**: balance overview, transaction history, payout request, revenue chart, top products
 
 ### Nhóm dự phòng (nếu còn token)
 
-- [ ] **Task 6 — SearchPage**: filter giá/rating/thương hiệu, autocomplete, sort
-- [ ] **Task 7 — Chat nâng cấp**: typing indicator, read receipts, online status, file upload
-- [ ] **Task 8 — Admin Reports**: charts doanh thu platform, top sellers, top categories
+- [ ] **Task 7 — Admin ReturnsPage + WithdrawalsPage**: detail modal, approve/reject/refund actions, bulk approve
+- [ ] **Task 8 — Seller EditProductPage**: multi-image upload + drag reorder, variant matrix, shipping info
+- [ ] **Task 9 — buyer-web ShopPage + CheckoutPage**: shop tabs (products/reviews/info), follow button, coupon code, address selector

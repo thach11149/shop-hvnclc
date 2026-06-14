@@ -1,22 +1,23 @@
 # Kế hoạch hôm nay
 
-**Ngày:** 2026-06-14
-**Chi tiết:** xem [plans/2026-06-14.md](2026-06-14.md)
+**Ngày:** 2026-06-15
+**Chi tiết:** xem [plans/2026-06-15.md](2026-06-15.md)
 
 ---
 
 ## Tóm tắt
 
-**NHÓM CHÍNH — bắt buộc hoàn thành cả 5:**
+**NHÓM CHÍNH — bắt buộc hoàn thành cả 6:**
 
-1. **Sidebar navigation** — thêm 14 trang mới vào sidebar seller + admin (hiện tại routes có nhưng không navigate được)
-2. **ProductDetailPage** — tích hợp Q&A section, rating breakdown chart, recommendations widget
-3. **CategoryManagementPage** — tree view, inline edit, drag reorder, upload ảnh (backend endpoint nếu thiếu)
-4. **SellerDashboard** — metrics thật từ API, LineChart 30 ngày (recharts), real-time đơn mới qua Socket.io
-5. **OrdersPage seller** — filter nâng cao (date range, status, kho), bulk actions (tracking, in phiếu, xác nhận)
+1. **HomePage buyer-web** — Banner carousel auto-play, Flash Sale countdown, danh mục nổi bật, "Gợi ý cho bạn" (AI), sản phẩm bán chạy
+2. **ProductsPage + CategoryPage buyer-web** — filter sidebar (giá/rating/category/freeship), grid/list toggle, sort, URL sync, breadcrumb, subcategories
+3. **AccountPage buyer-web** — 4 tabs: hồ sơ (avatar upload, edit form), bảo mật (đổi mật khẩu), địa chỉ (CRUD), đơn hàng gần đây
+4. **Admin DashboardPage + OrdersPage** — KPI cards thật, AreaChart 30 ngày, recent orders/users, OrdersPage với filter/search/export
+5. **Admin SellersPage + UsersPage** — filter nâng cao, bulk approve/suspend/ban, confirm dialogs, row actions
+6. **Seller FinancePage + ReportsPage** — balance overview, transaction history, payout request, revenue chart, top products
 
 **NHÓM DỰ PHÒNG — làm tiếp nếu còn token:**
 
-6. **SearchPage** — filter giá/rating/thương hiệu, autocomplete suggestions, sort
-7. **Chat nâng cấp** — typing indicator, read receipts, online status, file upload
-8. **Admin Reports** — charts doanh thu platform, top sellers, top categories
+7. **Admin ReturnsPage + WithdrawalsPage** — detail modal, approve/reject/refund actions, bulk approve
+8. **Seller EditProductPage** — multi-image upload + drag reorder, variant matrix, shipping info
+9. **buyer-web ShopPage + CheckoutPage** — shop tabs (products/reviews/info), follow button, coupon code, address selector modal
