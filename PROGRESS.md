@@ -355,3 +355,81 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [ ] Mobile app (React Native)
 - [ ] Prisma migrate: cần chạy sau khi setup DB với schema mới
 - [ ] npm install recharts trong admin-console (đã add vào package.json)
+
+## Session 2026-06-14 Agent 2 (claude/determined-mendel-bkvz7y)
+
+### Task 1 — Seller CampaignsPage ✅
+- [x] Filter tabs (active/upcoming/paused/expired/all)
+- [x] Create/edit modal (tên, loại, thời gian, mã voucher, discount, điều kiện)
+- [x] Toggle activate/deactivate
+- [x] Delete with confirm dialog
+- [x] API: POST /seller/campaigns/create, PATCH /seller/campaigns/:id/update, PATCH /seller/campaigns/:id/toggle, DELETE /seller/campaigns/:id
+
+### Task 2 — Seller ShopPage ✅
+- [x] Upload ảnh đại diện + banner (FileReader preview + POST /upload/image)
+- [x] Edit tên/mô tả/phone/địa chỉ/danh mục/chính sách hoàn trả/thời gian phản hồi
+- [x] Preview shop button (ExternalLink)
+- [x] API: PATCH /seller/shop (PATCH /sellers/profile)
+
+### Task 3 — Seller AffiliatePage ✅
+- [x] KPI cards (hoa hồng tháng này/tổng/chờ/đã nhận)
+- [x] Biểu đồ 30 ngày (recharts BarChart)
+- [x] List affiliate links (click, đơn, hoa hồng, copy link)
+- [x] Lịch sử thanh toán tab
+- [x] Create link modal
+- [x] API: GET /affiliate/stats, /affiliate/links, POST /affiliate/links, /affiliate/earnings
+
+### Task 4 — Seller AdsPage + AdsReportsPage ✅
+- [x] KPI cards (chi tiêu/impressions/clicks/CTR)
+- [x] List campaigns với toggle bật/tắt, edit budget nhanh (inline)
+- [x] Create ad modal (loại, sản phẩm/keyword, CPC/CPM, bid, budget, ngày)
+- [x] AdsReportsPage: AreaChart chi tiêu (recharts), bảng top sản phẩm ROAS, bảng daily
+- [x] API: PATCH /seller/ads/campaigns/:id/toggle, PATCH /seller/ads/campaigns/:id/budget, GET /seller/ads/reports
+
+### Task 5 — buyer-web CartPage ✅
+- [x] Coupon code input → POST /promotions/validate-coupon → hiện discount/lỗi
+- [x] Group items by seller (tên shop, subtotal per shop, collapse/expand)
+- [x] Save for later (Heart button → wishlist)
+- [x] Order summary realtime (discount, shipping free >500K)
+- [x] Pass coupon code to checkout via location state
+
+### Task 6 — buyer-web OrdersPage + WishlistPage ✅
+- [x] OrdersPage: filter tabs trạng thái, search (mã đơn/sản phẩm), date filter (7/30/90 ngày)
+- [x] OrdersPage: order cards với actions (Đã nhận/Theo dõi/Mua lại/Đánh giá/Đổi trả/Hủy)
+- [x] OrdersPage: cancel modal với dropdown lý do
+- [x] WishlistPage: grid 4 cột, badge "Giảm X%", nút "Thêm vào giỏ", "Thêm tất cả", xóa, empty state
+- [x] WishlistPage: rating display
+
+### Task 7 — Seller EditProductPage ✅
+- [x] Multi-image upload tối đa 8 ảnh + HTML5 drag reorder
+- [x] Rich text description (textarea + markdown preview toggle)
+- [x] Variant matrix: thêm attribute → auto-gen tổ hợp → SKU/giá/tồn kho/bulk fill
+- [x] Shipping info (cân nặng, kích thước LxWxH, thời gian xử lý)
+
+### Task 8 — buyer-web CheckoutPage ✅
+- [x] Address selector modal: danh sách địa chỉ + radio chọn + link thêm mới
+- [x] Coupon code input → POST /promotions/validate-coupon → discount hiển thị realtime
+- [x] Ghi chú đơn hàng
+- [x] Order summary cập nhật động khi apply coupon
+- [x] Nhận coupon code từ CartPage qua location.state
+
+### Task 9 — Seller ReturnRequestsPage ✅
+- [x] Filter (trạng thái/search mã đơn)
+- [x] Return card expandable (buyer info, lý do, ảnh gallery với lightbox, timeline)
+- [x] Actions: Duyệt / Từ chối (modal lý do) / Hoàn tiền một phần (modal số tiền)
+
+### Task 10 — buyer-web LoyaltyPage ✅
+- [x] Points balance card gradient lớn với tier badge
+- [x] Tier progress bar (current → next tier)
+- [x] Stats row (tổng tích lũy / đã dùng / khả dụng)
+- [x] Form đổi điểm → coupon với preview giá trị
+- [x] Lịch sử điểm với filter loại (all/earn/spend)
+- [x] API: GET /loyalty/account, /loyalty/transactions, POST /loyalty/redeem
+
+### Task 11 — Seller AIPricePage + AIInventoryForecastPage ✅
+- [x] AIPricePage: form (tên, category, giá vốn, giá hiện tại) → POST /ai/price-suggestion → giá đề xuất + khoảng + confidence + reasoning
+- [x] AIPricePage: so sánh giá hiện tại vs đề xuất (tăng/giảm %)
+- [x] AIInventoryForecastPage: selector sản phẩm → AreaChart dự báo 30 ngày (stock + demand)
+- [x] AIInventoryForecastPage: alerts tồn kho thấp (≤7 ngày, ≤14 ngày)
+- [x] AIInventoryForecastPage: reorder suggestion
+
