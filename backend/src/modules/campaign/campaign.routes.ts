@@ -48,6 +48,34 @@ export function createCampaignRouter(campaignService: CampaignService) {
     }
   );
 
+  // POST /seller/campaigns/create (create seller own campaign)
+  router.post('/seller/campaigns/create', authenticate, authorize('SELLER_OWNER'),
+    [body('name').notEmpty(), body('type').notEmpty(), body('startAt').isISO8601(), body('endAt').isISO8601()],
+    validateRequest,
+    async (req: AuthRequest, res) => {
+      const campaign = await campaignService.createSellerCampaign(req.user!.shopId!, req.body);
+      sendSuccess(res, campaign, 'Chiến dịch đã được tạo', 201);
+    }
+  );
+
+  // PATCH /seller/campaigns/:id/update (update seller campaign)
+  router.patch('/seller/campaigns/:id/update', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res) => {
+    const campaign = await campaignService.updateSellerCampaign(req.params.id, req.user!.shopId!, req.body);
+    sendSuccess(res, campaign);
+  });
+
+  // PATCH /seller/campaigns/:id/toggle
+  router.patch('/seller/campaigns/:id/toggle', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res) => {
+    const campaign = await campaignService.toggleSellerCampaign(req.params.id, req.user!.shopId!);
+    sendSuccess(res, campaign);
+  });
+
+  // DELETE /seller/campaigns/:id
+  router.delete('/seller/campaigns/:id', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res) => {
+    await campaignService.deleteSellerCampaign(req.params.id, req.user!.shopId!);
+    sendSuccess(res, null, 'Đã xóa chiến dịch');
+  });
+
   // Admin routes
   router.post('/admin/campaigns', authenticate, authorize('ADMIN_CONTENT', 'ADMIN_OPERATOR', 'SUPER_ADMIN'),
     [body('name').notEmpty(), body('slug').notEmpty(), body('startAt').isISO8601(), body('endAt').isISO8601()],

@@ -156,4 +156,42 @@ export class CampaignService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async createSellerCampaign(shopId: string, data: any) {
+    return this.prisma.campaign.create({
+      data: {
+        name: data.name,
+        slug: `shop-${shopId}-${Date.now()}`,
+        type: (data.type || 'GENERAL') as 'GENERAL' | 'FLASH_SALE' | 'SEASONAL' | 'CATEGORY_FOCUS',
+        startAt: new Date(data.startAt),
+        endAt: new Date(data.endAt),
+        status: 'DRAFT',
+        createdBy: shopId,
+      },
+    });
+  }
+
+  async updateSellerCampaign(id: string, shopId: string, data: any) {
+    return this.prisma.campaign.update({
+      where: { id },
+      data: {
+        name: data.name,
+        startAt: data.startAt ? new Date(data.startAt) : undefined,
+        endAt: data.endAt ? new Date(data.endAt) : undefined,
+      },
+    });
+  }
+
+  async toggleSellerCampaign(id: string, shopId: string) {
+    const c = await this.prisma.campaign.findUniqueOrThrow({ where: { id } });
+    // CampaignStatus: DRAFT | ACTIVE | ENDED | CANCELLED
+    return this.prisma.campaign.update({
+      where: { id },
+      data: { status: c.status === 'ACTIVE' ? 'CANCELLED' : 'ACTIVE' },
+    });
+  }
+
+  async deleteSellerCampaign(id: string, shopId: string) {
+    return this.prisma.campaign.delete({ where: { id } });
+  }
 }

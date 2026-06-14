@@ -127,6 +127,42 @@ export class PromotionService {
     });
   }
 
+  async getActivePromotions() {
+    const now = new Date();
+    return this.prisma.promotion.findMany({
+      where: { isActive: true, startAt: { lte: now }, endAt: { gte: now } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updatePromotion(id: string, data: Partial<{
+    name: string;
+    description: string;
+    discountType: string;
+    discountValue: number;
+    minOrderAmount: number;
+    maxDiscount: number;
+    usageLimit: number;
+    usageLimitPerUser: number;
+    startAt: Date;
+    endAt: Date;
+    isActive: boolean;
+  }>) {
+    return this.prisma.promotion.update({
+      where: { id },
+      data: {
+        ...data,
+        discountType: data.discountType as DiscountType | undefined,
+        startAt: data.startAt ? new Date(data.startAt) : undefined,
+        endAt: data.endAt ? new Date(data.endAt) : undefined,
+      },
+    });
+  }
+
+  async deletePromotion(id: string) {
+    return this.prisma.promotion.delete({ where: { id } });
+  }
+
   private calculateDiscount(
     promo: { discountType: string; discountValue: { toNumber: () => number }; maxDiscount: { toNumber: () => number } | null },
     subtotal: number

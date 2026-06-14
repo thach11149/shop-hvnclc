@@ -44,6 +44,51 @@ export class AdsService {
     });
   }
 
+  async toggleCampaign(id: string, shopId: string) {
+    const campaign = await this.prisma.adsCampaign.findFirstOrThrow({ where: { id, shopId } });
+    const newStatus = campaign.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    return this.prisma.adsCampaign.update({ where: { id }, data: { status: newStatus } });
+  }
+
+  async updateCampaignBudget(id: string, shopId: string, dailyBudget: number) {
+    return this.prisma.adsCampaign.update({
+      where: { id, shopId },
+      data: { dailyBudget, budget: dailyBudget * 30 },
+    });
+  }
+
+  async getDetailedReports(shopId: string, _period: string) {
+    const campaigns = await this.prisma.adsCampaign.findMany({
+      where: { shopId },
+      include: {
+        spendLogs: true,
+        adGroups: { include: { keywords: true } },
+      },
+    });
+
+    const reportsByCampaign = campaigns.map(campaign => {
+      const totalSpent = campaign.spentAmount.toNumber();
+      const totalImpressions = campaign.spendLogs.reduce((s, l) => s + l.impressions, 0);
+      const totalClicks = campaign.spendLogs.reduce((s, l) => s + l.clicks, 0);
+      const roas = totalSpent > 0 ? (totalClicks * 100) / totalSpent : 0;
+      return {
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        status: campaign.status,
+        totalSpent,
+        totalImpressions,
+        totalClicks,
+        roas,
+        ctr: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
+        cpc: totalClicks > 0 ? totalSpent / totalClicks : 0,
+      };
+    });
+
+    const topByRoas = [...reportsByCampaign].sort((a, b) => b.roas - a.roas).slice(0, 10);
+
+    return { campaigns: reportsByCampaign, topByRoas };
+  }
+
   async getStats(shopId: string, _period: string) {
     const campaigns = await this.prisma.adsCampaign.findMany({ where: { shopId } });
     const totalSpent = campaigns.reduce((s, c) => s + c.spentAmount.toNumber(), 0);
