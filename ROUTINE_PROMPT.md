@@ -1,15 +1,13 @@
-# ROUTINE PROMPT — Dán vào khi tạo Claude Routine mới
+# ROUTINE PROMPT — Copy toàn bộ file này khi tạo Claude Routine
 
-> Đây là prompt chuẩn để chạy Claude Agent trên repo này.
-> Sao chép toàn bộ phần dưới dấu `---` khi tạo routine.
+> File này được cập nhật mỗi ngày trước khi chạy routine.
+> Xem lịch sử kế hoạch theo ngày tại thư mục `plans/`.
 
 ---
 
 Repo: https://github.com/thach11149/shop-hvnclc
 
 ## BƯỚC 1 — Đọc trạng thái trước khi làm bất cứ thứ gì
-
-Chạy các lệnh sau và đọc kết quả kỹ trước khi viết 1 dòng code nào:
 
 ```bash
 git fetch origin
@@ -19,57 +17,92 @@ cat HANDOFF.md 2>/dev/null || echo "No handoff file"
 cat PROGRESS.md 2>/dev/null || echo "No progress file"
 ```
 
-## BƯỚC 2 — Đọc plan triển khai
+## BƯỚC 2 — Đọc kế hoạch hôm nay
 
-Các file plan trong thư mục `marketplace_plan_6_md_files/`:
-- `01_giai_doan_1_launch_baseline_loi_giao_dich_marketplace.md`
-- `02_giai_doan_2_nang_cap_seller_promotion_search_doi_tra.md`
-- `03_giai_doan_3_logistics_ads_affiliate_fraud_bi.md`
-- `04_giai_doan_4_ai_bigdata_ca_nhan_hoa_tu_dong_hoa.md`
-- `05_huong_dan_chung_cho_doi_code_tl_po_tester.md`
-- `06_checklist_trien_khai_va_nghiem_thu_code.md`
-
-Đọc `PROGRESS.md` để biết đã làm đến đâu. Những gì đã đánh dấu ✅ thì bỏ qua hoàn toàn — không làm lại.
+Đọc file `plans/TODAY.md` để biết nhiệm vụ cụ thể của session này.
+Đọc `PROGRESS.md` để biết đã làm đến đâu — những gì đã ✅ thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch đúng cách
 
-- Nếu có branch `claude/xxx` chưa merge trên remote → tạo branch mới TỪ branch đó, không phải từ main
+- Nếu có branch `claude/xxx` chưa merge trên remote → tạo branch mới TỪ branch đó
 - Nếu không có WIP branch → tạo từ `origin/main` mới nhất
 
 ## BƯỚC 4 — Triển khai
 
-- Tự code, tự xử lý lỗi, tự quyết định — không cần chờ phản hồi
-- Commit và push sau mỗi module hoàn thành (không đợi xong tất cả)
-- Cập nhật `PROGRESS.md` sau mỗi phần hoàn thành
-- Ghi lỗi và cách xử lý vào `ERRORS_AND_SOLUTIONS.md`
+- Tự code, tự xử lý lỗi, tự quyết định — **không hỏi lại cho tới khi hết token**
+- Nếu gặp vấn đề không giải quyết được: ghi vào `ERRORS_AND_SOLUTIONS.md` và làm tiếp item tiếp theo
+- Commit và push sau mỗi module hoàn thành
+- Cập nhật `PROGRESS.md` sau mỗi item xong
 
 ## BƯỚC 5 — Khi sắp hết token hoặc cần dừng
 
-Bắt buộc làm trước khi dừng:
-1. Commit và push tất cả code hiện tại (kể cả dở dang)
-2. Cập nhật `HANDOFF.md` — ghi rõ: đã làm gì (kèm commit hash), đang làm dở gì, chưa làm gì, files nào đang mở
+Bắt buộc theo thứ tự:
+1. `git add -A && git commit -m "wip: dừng tại [X]" && git push origin <branch>`
+2. Cập nhật `HANDOFF.md` — đã làm gì (commit hash), đang dở gì, chưa làm gì
 3. Cập nhật `PROGRESS.md`
-4. Push lên remote
+4. `git add HANDOFF.md PROGRESS.md && git commit -m "docs: cập nhật handoff" && git push`
 
 ## BƯỚC 6 — Kết thúc session
 
-Tạo Pull Request từ branch hiện tại vào `main` với mô tả rõ những gì đã làm.
-Không tự merge — để owner review và bấm merge trên GitHub.
-
-Đọc `CLAUDE.md` trong repo để biết thêm quy tắc chi tiết và format chuẩn.
+```bash
+gh pr create --base main --head <branch> --title "feat: [mô tả]" --body "..."
+```
+Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## Ghi chú khi tùy chỉnh prompt
+## NHIỆM VỤ HÔM NAY — 2026-06-14
 
-Nếu muốn chỉ định Agent làm 1 giai đoạn cụ thể, thêm dòng này vào cuối BƯỚC 2:
+> Xem chi tiết đầy đủ tại `plans/2026-06-14.md`
 
-```
-Lần này chỉ làm Giai đoạn X ([tên file]). Các giai đoạn khác bỏ qua dù chưa làm.
-```
+**Phạm vi:** Backend + Frontend toàn bộ (1 agent, không conflict)
+**Mục tiêu:** ~15,000 dòng code — hoàn thiện tính năng còn thiếu
 
-Nếu muốn Agent tiếp tục từ branch cụ thể:
+### Thứ tự ưu tiên:
 
-```
-Tạo branch mới từ origin/claude/<tên-branch-cụ-thể>, không phải từ main.
-```
+**NHÓM 1 — Backend** (làm trước để frontend có API)
+- [ ] Prisma schema: thêm model `ProductQnA`, `AuditLog` → chạy `prisma migrate`
+- [ ] Module Product Q&A: `q-and-a.service.ts`, `q-and-a.routes.ts`, wire `app.ts`
+- [ ] Module Audit Log: `audit-log.service.ts`, `audit-log.routes.ts`, middleware tự động log
+- [ ] Payment gateway: `vnpay.service.ts`, `momo.service.ts`, `zalopay.service.ts` + webhook handlers
+- [ ] Email templates: order-confirmed, order-shipped, dispute-update, welcome (nodemailer)
+- [ ] Redis caching: `cache.service.ts` + apply vào product detail / search / recommendations
+- [ ] Export CSV/Excel: orders, products, finance (admin + seller)
+- [ ] WebSocket: Socket.io setup, real-time chat + notifications, seller online/offline
+
+**NHÓM 2 — Frontend Buyer-web**
+- [ ] NotificationsPage `/account/notifications`
+- [ ] PaymentMethodsPage `/account/payment`
+- [ ] TrackingPage `/orders/:id/tracking`
+- [ ] ProductQnASection (component nhúng vào ProductDetailPage)
+- [ ] ReviewsPage `/account/reviews`
+- [ ] CheckoutPage nâng cấp — tích hợp chọn payment gateway
+- [ ] PaymentResultPage — làm thật (đang là skeleton)
+- [ ] ReturnRequestPage nâng cấp — upload ảnh, theo dõi tiến trình
+- [ ] LiveChatWidget — float chat với seller qua Socket.io
+
+**NHÓM 3 — Frontend Seller-center**
+- [ ] ReviewManagementPage `/reviews`
+- [ ] QnAManagementPage `/qna`
+- [ ] PayoutPage `/finance/payouts`
+- [ ] InventoryAlertPage `/warehouse/alerts`
+- [ ] OrderFulfillmentPage `/orders/fulfillment` — in phiếu, cập nhật tracking hàng loạt
+- [ ] ShopAnalyticsPage nâng cấp — chart doanh thu, funnel
+- [ ] NotificationsPage `/notifications`
+- [ ] LiveStreamPage `/live` — UI quản lý buổi live
+
+**NHÓM 4 — Frontend Admin-console**
+- [ ] SystemConfigPage `/system/config`
+- [ ] EmailTemplatesPage `/system/emails`
+- [ ] PaymentConfigPage `/system/payment`
+- [ ] AuditLogPage `/audit-logs`
+- [ ] AnnouncementsPage `/announcements`
+- [ ] CategoryManagementPage nâng cấp — drag-drop, ảnh
+- [ ] BulkActionsPage `/products/bulk`
+
+**NHÓM 5 — Shared**
+- [ ] DataTable component (sort/filter/pagination)
+- [ ] ImageUpload component (drag-drop + preview)
+- [ ] RatingStars interactive component
+- [ ] WebSocket hook cho real-time
+- [ ] Error boundary + Skeleton loading
