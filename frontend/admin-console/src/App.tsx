@@ -39,9 +39,13 @@ const ModelMonitoringPage = lazy(() => import('./pages/ModelMonitoringPage'));
 const MarketingSegmentsPage = lazy(() => import('./pages/MarketingSegmentsPage'));
 const MarketingAutomationPage = lazy(() => import('./pages/MarketingAutomationPage'));
 const DataQualityPage = lazy(() => import('./pages/DataQualityPage'));
-const OperationsReportPage = lazy(() => import('./pages/OperationsReportPage'));
-const SellerDetailPage = lazy(() => import('./pages/SellerDetailPage'));
-const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
+// New pages
+const SystemConfigPage = lazy(() => import('./pages/SystemConfigPage'));
+const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
+const PaymentConfigPage = lazy(() => import('./pages/PaymentConfigPage'));
+const AuditLogPage = lazy(() => import('./pages/AuditLogPage'));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
+const BulkActionsPage = lazy(() => import('./pages/BulkActionsPage'));
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -87,9 +91,13 @@ function ProtectedLayout() {
             <Route path="/marketing/segments" element={<MarketingSegmentsPage />} />
             <Route path="/marketing/automation" element={<MarketingAutomationPage />} />
             <Route path="/data-quality" element={<DataQualityPage />} />
-            <Route path="/reports/operations" element={<OperationsReportPage />} />
-            <Route path="/sellers/:id" element={<SellerDetailPage />} />
-            <Route path="/campaigns" element={<CampaignsPage />} />
+            {/* New pages */}
+            <Route path="/system/config" element={<SystemConfigPage />} />
+            <Route path="/system/emails" element={<EmailTemplatesPage />} />
+            <Route path="/system/payment" element={<PaymentConfigPage />} />
+            <Route path="/audit-logs" element={<AuditLogPage />} />
+            <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route path="/products/bulk" element={<BulkActionsPage />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
