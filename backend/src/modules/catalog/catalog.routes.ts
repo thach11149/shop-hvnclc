@@ -14,6 +14,11 @@ export function createCatalogRouter(catalogService: CatalogService) {
   const router = Router();
 
   // Public routes
+  router.get('/categories/tree', async (_req, res) => {
+    const tree = await catalogService.getCategoryTree();
+    sendSuccess(res, tree);
+  });
+
   router.get('/categories', async (req, res) => {
     const categories = await catalogService.getCategories(req.query.parentId as string);
     sendSuccess(res, categories);
@@ -116,6 +121,17 @@ export function createCatalogRouter(catalogService: CatalogService) {
   router.patch('/admin/categories/:id', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req: AuthRequest, res) => {
     const category = await catalogService.updateCategory(req.params.id, req.body, req.user!.id);
     sendSuccess(res, category);
+  });
+
+  router.delete('/admin/categories/:id', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req: AuthRequest, res) => {
+    await catalogService.deleteCategory(req.params.id, req.user!.id);
+    sendSuccess(res, null, 'Category deleted');
+  });
+
+  router.patch('/admin/categories/reorder', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req: AuthRequest, res) => {
+    const { ids } = req.body as { ids: string[] };
+    await catalogService.reorderCategories(ids, req.user!.id);
+    sendSuccess(res, null, 'Reordered');
   });
 
   // ============================================================

@@ -3,7 +3,8 @@ import {
   LayoutDashboard, Users, Store, Package, ShoppingBag,
   Tag, Image, DollarSign, BarChart2, RotateCcw, LogOut, Shield,
   Warehouse, Megaphone, Link2, AlertTriangle, Bot, TrendingUp,
-  Activity, Database, Mail, Zap, BarChart
+  Activity, Database, Mail, Zap, BarChart, Settings, CreditCard,
+  FileText, Bell, Layers, ClipboardCheck, ScrollText
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import clsx from 'clsx';
@@ -21,6 +22,7 @@ const menuGroups = [
       { path: '/users', icon: Users, label: 'Người dùng' },
       { path: '/sellers', icon: Store, label: 'Người bán' },
       { path: '/products', icon: Package, label: 'Sản phẩm' },
+      { path: '/products/bulk', icon: ClipboardCheck, label: 'Duyệt hàng loạt' },
       { path: '/orders', icon: ShoppingBag, label: 'Đơn hàng' },
       { path: '/categories', icon: Tag, label: 'Danh mục' },
     ],
@@ -41,6 +43,7 @@ const menuGroups = [
       { path: '/flash-sale', icon: Zap, label: 'Flash Sale' },
       { path: '/shipping-carriers', icon: Activity, label: 'Vận chuyển' },
       { path: '/warehouses', icon: Warehouse, label: 'Kho hàng' },
+      { path: '/announcements', icon: Bell, label: 'Thông báo hệ thống' },
     ],
   },
   {
@@ -74,6 +77,20 @@ const menuGroups = [
     items: [
       { path: '/reports', icon: BarChart2, label: 'Báo cáo chung' },
       { path: '/reports/operations', icon: BarChart2, label: 'Vận hành' },
+    ],
+  },
+  {
+    label: 'Quản trị hệ thống',
+    items: [
+      { path: '/audit-logs', icon: ScrollText, label: 'Audit Logs' },
+    ],
+  },
+  {
+    label: 'Hệ thống',
+    items: [
+      { path: '/system/config', icon: Settings, label: 'Cấu hình' },
+      { path: '/system/emails', icon: Mail, label: 'Email Templates' },
+      { path: '/system/payment', icon: CreditCard, label: 'Cổng thanh toán' },
     ],
   },
 ];

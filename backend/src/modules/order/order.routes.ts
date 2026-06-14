@@ -56,6 +56,9 @@ export function createOrderRouter(orderService: OrderService) {
   router.get('/seller/orders', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
     const result = await orderService.getSellerOrders(req.user!.shopId!, {
       status: req.query.status as OrderStatus,
+      search: req.query.search as string,
+      fromDate: req.query.fromDate as string,
+      toDate: req.query.toDate as string,
       page: Number(req.query.page),
       limit: Number(req.query.limit),
     });
@@ -79,6 +82,39 @@ export function createOrderRouter(orderService: OrderService) {
   router.patch('/seller/orders/:id/pack', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
     const order = await orderService.sellerPackOrder(req.params.id, req.user!.shopId!);
     sendSuccess(res, order);
+  });
+
+  router.patch('/seller/orders/bulk', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const { orderIds, action, data } = req.body;
+    if (!orderIds?.length || !action) return res.status(400).json({ success: false, error: 'orderIds and action required' });
+    const result = await orderService.bulkUpdateOrders(req.user!.shopId!, orderIds, action, data);
+    sendSuccess(res, result);
+  });
+
+  router.get('/seller/orders/:id/shipping-label', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const label = await orderService.getShippingLabel(req.params.id, req.user!.shopId!);
+    sendSuccess(res, label);
+  });
+
+  // Seller analytics endpoints
+  router.get('/seller/analytics/revenue', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const result = await orderService.getSellerAnalyticsRevenue(req.user!.shopId!, req.query.period as string || '30d');
+    sendSuccess(res, result);
+  });
+
+  router.get('/seller/analytics/orders', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const result = await orderService.getSellerAnalyticsOrders(req.user!.shopId!);
+    sendSuccess(res, result);
+  });
+
+  router.get('/seller/analytics/top-products', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const result = await orderService.getSellerTopProducts(req.user!.shopId!);
+    sendSuccess(res, result);
+  });
+
+  router.get('/seller/analytics/revenue-chart', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res) => {
+    const result = await orderService.getSellerRevenue30Days(req.user!.shopId!);
+    sendSuccess(res, result);
   });
 
   // Admin routes
