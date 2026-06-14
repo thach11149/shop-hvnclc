@@ -7,6 +7,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/UsersPage'));
 const SellersPage = lazy(() => import('./pages/SellersPage'));
+const SellerDetailPage = lazy(() => import('./pages/SellerDetailPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage'));
@@ -15,7 +16,9 @@ const BannersPage = lazy(() => import('./pages/BannersPage'));
 const WithdrawalsPage = lazy(() => import('./pages/WithdrawalsPage'));
 const ReturnsPage = lazy(() => import('./pages/ReturnsPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const OperationsReportPage = lazy(() => import('./pages/OperationsReportPage'));
 // Phase 2
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage'));
 const FlashSaleAdminPage = lazy(() => import('./pages/FlashSaleAdminPage'));
 const ShippingCarriersPage = lazy(() => import('./pages/ShippingCarriersPage'));
@@ -52,6 +55,7 @@ function ProtectedLayout() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/sellers" element={<SellersPage />} />
+            <Route path="/sellers/:id" element={<SellerDetailPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
@@ -60,7 +64,9 @@ function ProtectedLayout() {
             <Route path="/withdrawals" element={<WithdrawalsPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/reports/operations" element={<OperationsReportPage />} />
             {/* Phase 2 */}
+            <Route path="/campaigns" element={<CampaignsPage />} />
             <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
             <Route path="/flash-sale" element={<FlashSaleAdminPage />} />
             <Route path="/shipping-carriers" element={<ShippingCarriersPage />} />

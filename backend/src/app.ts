@@ -84,6 +84,12 @@ import { createAiRouter } from './modules/ai/ai.routes';
 import { MarketingService } from './modules/marketing/marketing.service';
 import { createMarketingRouter } from './modules/marketing/marketing.routes';
 
+import { NotificationService } from './modules/notification/notification.service';
+import { createNotificationRouter } from './modules/notification/notification.routes';
+import { PaymentService } from './modules/payment/payment.service';
+import { createPaymentRouter } from './modules/payment/payment.routes';
+import { startPayoutScheduler } from './jobs/payout.job';
+
 const prisma = new PrismaClient();
 setEventPrisma(prisma);
 setNotificationPrisma(prisma);
@@ -151,6 +157,8 @@ const fraudService = new FraudService(prisma);
 // Phase 4
 const aiService = new AiService(prisma);
 const marketingService = new MarketingService(prisma);
+const notificationService = new NotificationService(prisma);
+const paymentService = new PaymentService(prisma);
 
 // Routes
 const API_PREFIX = '/api/v1';
@@ -179,6 +187,9 @@ app.use(API_PREFIX, createFraudRouter(fraudService));
 // Phase 4
 app.use(API_PREFIX, createAiRouter(aiService));
 app.use(API_PREFIX, createMarketingRouter(marketingService));
+app.use(API_PREFIX, createNotificationRouter(notificationService));
+app.use(API_PREFIX, createPaymentRouter(paymentService));
+startPayoutScheduler(prisma);
 
 // 404 and error handlers
 app.use(notFoundHandler);

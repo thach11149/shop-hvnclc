@@ -24,12 +24,12 @@ export function createWarehouseRouter(warehouseService: WarehouseService): Route
   });
 
   router.get('/admin/fulfillment', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res: Response) => {
-    const data = await warehouseService.listFulfillmentOrders(req.query.type as string);
+    const data = await warehouseService.listFulfillmentOrders(req.query.status as string);
     sendSuccess(res, data);
   });
 
-  router.get('/admin/fulfillment/inventory', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (_req, res: Response) => {
-    const data = await warehouseService.getWarehouseInventory();
+  router.get('/admin/fulfillment/inventory', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res: Response) => {
+    const data = await warehouseService.getWarehouseInventory(req.query.warehouseId as string);
     sendSuccess(res, data);
   });
 
@@ -41,23 +41,23 @@ export function createWarehouseRouter(warehouseService: WarehouseService): Route
 
   router.post('/seller/warehouse/inventory/:id/adjust', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res: Response) => {
     const { qty, reason } = req.body;
-    const data = await warehouseService.adjustInventory(req.params.id, req.user!.shopId!, qty, reason);
+    const data = await warehouseService.adjustInventory(req.params.id, qty, reason);
     sendSuccess(res, data);
   });
 
   router.get('/seller/warehouse/inbound', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res: Response) => {
-    const data = await warehouseService.listInboundOrders(req.user!.shopId!);
+    const data = await warehouseService.listInboundRequests(req.user!.shopId!);
     sendSuccess(res, data);
   });
 
   router.post('/seller/warehouse/inbound', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res: Response) => {
-    const { warehouseCode, items } = req.body;
-    const data = await warehouseService.createInboundOrder(req.user!.shopId!, warehouseCode, items);
+    const { warehouseCode, items, note } = req.body;
+    const data = await warehouseService.createInboundRequest(req.user!.shopId!, warehouseCode, items, note);
     sendSuccess(res, data, 'Phiếu nhập kho đã được tạo', 201);
   });
 
   router.post('/seller/warehouse/inbound/:id/submit', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res: Response) => {
-    const data = await warehouseService.submitInboundOrder(req.params.id, req.user!.shopId!);
+    const data = await warehouseService.submitInboundRequest(req.params.id);
     sendSuccess(res, data);
   });
 

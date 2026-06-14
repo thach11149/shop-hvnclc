@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { SearchService } from './search.service';
 import { optionalAuth, authenticate } from '../../shared/middleware/auth.middleware';
+import { withCache } from '../../shared/middleware/cache.middleware';
 import { sendSuccess } from '../../shared/utils/response';
 import { AuthRequest } from '../../shared/types';
 
@@ -21,7 +22,7 @@ export function createSearchRouter(searchService: SearchService) {
     sendSuccess(res, result);
   });
 
-  router.get('/search/suggestions', async (req, res) => {
+  router.get('/search/suggestions', withCache(30), async (req, res) => {
     const result = await searchService.getSuggestions(req.query.q as string || '');
     sendSuccess(res, result);
   });

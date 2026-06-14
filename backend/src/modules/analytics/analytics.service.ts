@@ -60,4 +60,96 @@ export class AnalyticsService {
       conversionRate: views > 0 ? ((purchases / views) * 100).toFixed(2) : 0,
     };
   }
+
+  async getAdminSummary(days: number) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const [
+      totalOrders, revenue, totalUsers, newUsers,
+      totalSellers, activeSellers, pendingSellers,
+      totalProducts, pendingProducts,
+    ] = await Promise.all([
+      this.prisma.order.count({ where: { createdAt: { gte: since } } }),
+      this.prisma.order.aggregate({
+        where: { createdAt: { gte: since }, status: { in: ['COMPLETED', 'DELIVERED', 'SHIPPING'] } },
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { createdAt: { gte: since } } }),
+      this.prisma.shop.count(),
+      this.prisma.shop.count({ where: { status: 'APPROVED' } }),
+      this.prisma.shop.count({ where: { status: 'PENDING_APPROVAL' } }),
+      this.prisma.product.count(),
+      this.prisma.product.count({ where: { status: 'PENDING_APPROVAL' } }),
+    ]);
+
+    const prevSince = new Date(since.getTime() - days * 24 * 60 * 60 * 1000);
+    const [prevOrders, prevRevenue] = await Promise.all([
+      this.prisma.order.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
+      this.prisma.order.aggregate({
+        where: { createdAt: { gte: prevSince, lt: since }, status: { in: ['COMPLETED', 'DELIVERED', 'SHIPPING'] } },
+        _sum: { totalAmount: true },
+      }),
+    ]);
+
+    const currentRevenue = revenue._sum.totalAmount?.toNumber() || 0;
+    const previousRevenue = prevRevenue._sum.totalAmount?.toNumber() || 0;
+    const revenueGrowth = previousRevenue > 0
+      ? ((currentRevenue - previousRevenue) / previousRevenue * 100).toFixed(1)
+      : '0';
+
+    return {
+      period: days,
+      revenue: currentRevenue,
+      revenueGrowth: Number(revenueGrowth),
+      orders: totalOrders,
+      ordersGrowth: prevOrders > 0 ? ((totalOrders - prevOrders) / prevOrders * 100).toFixed(1) : '0',
+      totalUsers, newUsers,
+      totalSellers, activeSellers, pendingSellers,
+      totalProducts, pendingProducts,
+    };
+  }
+
+  async getOrderAnalytics(days: number) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const ordersByStatus = await this.prisma.order.groupBy({
+      by: ['status'],
+      where: { createdAt: { gte: since } },
+      _count: true,
+    });
+
+    const dailyRevenue = await this.prisma.$queryRaw<Array<{ date: string; revenue: number; orders: number }>>`
+      SELECT
+        DATE(created_at) as date,
+        SUM(total_amount) as revenue,
+        COUNT(*) as orders
+      FROM orders
+      WHERE created_at >= ${since}
+        AND status IN ('COMPLETED', 'DELIVERED', 'SHIPPING')
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `;
+
+    return {
+      ordersByStatus,
+      dailyRevenue,
+      period: days,
+    };
+  }
+
+  async getFraudCasesSummary() {
+    const [total, open, resolved] = await Promise.all([
+      this.prisma.fraudCase.count(),
+      this.prisma.fraudCase.count({ where: { status: 'open' } }),
+      this.prisma.fraudCase.count({ where: { status: 'resolved' } }),
+    ]);
+
+    const bySeverity = await this.prisma.fraudCase.groupBy({
+      by: ['severity'],
+      _count: true,
+    });
+
+    return { total, open, resolved, bySeverity };
+  }
 }
