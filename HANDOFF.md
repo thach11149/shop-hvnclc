@@ -1,6 +1,6 @@
-# HANDOFF — 2026-06-14
+# HANDOFF — 2026-06-14 (session claude/modest-darwin-3g1rs8)
 
-## Branch: claude/epic-fermi-oecesn
+## Branch: claude/modest-darwin-3g1rs8
 
 ---
 
@@ -8,49 +8,51 @@
 
 | Task | Commit | Mô tả |
 |------|--------|-------|
-| Task 1-5 | a200b43 | Sidebar, ProductDetail, CategoryTree, SellerDashboard, OrdersPage |
-| Task 6-8 + Docs | (commit hiện tại) | SearchPage, Chat nâng cấp, Admin Reports, PROGRESS+HANDOFF update |
+| Task 1,2,4,6 | 0a23fff | HomePage carousel/countdown/AI-recs, ProductsPage filter sidebar, Admin Dashboard KPI+chart, Seller Finance/Reports |
+| Task 2 CategoryPage | 8c8cd79 | CategoryPage breadcrumb, subcategories, filter sidebar, grid/list toggle, URL sync |
+| Task 3,5a SellersPage | 8f1aeb1 | AccountPage 4 tabs, SellersPage bulk+confirm dialogs |
+| Task 5b UsersPage | 1391c39 | UsersPage bulk actions, role filter, confirm dialog |
 
 ---
 
 ## Files thay đổi
 
-### Backend
-- `backend/src/modules/catalog/catalog.routes.ts` — GET /categories/tree, DELETE /admin/categories/:id, PATCH /admin/categories/reorder
-- `backend/src/modules/catalog/catalog.service.ts` — getCategoryTree(), deleteCategory(), reorderCategories()
-- `backend/src/modules/order/order.routes.ts` — PATCH /seller/orders/bulk, GET /seller/orders/:id/shipping-label, GET /seller/analytics/*, improved GET /seller/orders
-- `backend/src/modules/order/order.service.ts` — analytics methods, bulkUpdateOrders(), getShippingLabel(), improved getSellerOrders()
-- `backend/src/modules/analytics/analytics.routes.ts` — GET /admin/analytics/top-sellers, /top-categories, /realtime
-- `backend/src/modules/analytics/analytics.service.ts` — getTopSellers(), getTopCategories(), getRealtimeMetrics()
+### Frontend buyer-web
+- `src/pages/HomePage.tsx` — banner carousel auto-play, flash sale countdown, AI recommendations, best sellers
+- `src/pages/ProductsPage.tsx` — filter sidebar (price/rating/freeship), grid/list toggle, URL sync
+- `src/pages/CategoryPage.tsx` — breadcrumb, subcategories, filter sidebar, active chips, windowed pagination
+- `src/pages/AccountPage.tsx` — 4 tabs: profile (avatar upload), security (change password), addresses (CRUD), orders
 
-### Frontend Seller-center
-- `src/components/layout/Sidebar.tsx` — Reviews, QnA, Fulfillment, Alerts, Payouts, LiveStream, Analytics, Notifications (badge)
-- `src/pages/DashboardPage.tsx` — metrics thật từ API, LineChart 30 ngày (recharts), Socket.io real-time
-- `src/pages/OrdersPage.tsx` — advanced filters, bulk actions, shipping label modal, pagination
-- `src/pages/ChatPage.tsx` — typing indicator, read receipts, online status, file upload, message search
+### Frontend admin-console
+- `src/pages/DashboardPage.tsx` — 6 KPI cards, SVG area chart 30 days, recent orders/users tables, quick actions
+- `src/pages/OrdersPage.tsx` — search + date filter + export CSV, bulk select
+- `src/pages/SellersPage.tsx` — search, status tabs, bulk approve/suspend, confirm dialog modal, row actions
+- `src/pages/UsersPage.tsx` — search + role filter, bulk ban/activate, confirm dialog, color-coded badges
 
-### Frontend Admin-console
-- `src/components/layout/Sidebar.tsx` — BulkActions, Announcements, System (Config/Emails/Payment), AuditLogs
-- `src/pages/CategoriesPage.tsx` — tree view, drag-drop, modal form + image upload, delete confirm
-- `src/pages/ReportsPage.tsx` — real-time metrics, area chart, top sellers, top categories
-- `package.json` — thêm recharts
-
-### Frontend Buyer-web
-- `src/pages/ProductDetailPage.tsx` — Q&A section, rating breakdown, recommendations widget
-- `src/pages/SearchPage.tsx` — autocomplete, recent searches, filter panel (giá/rating), sort, pagination
+### Frontend seller-center
+- `src/pages/FinancePage.tsx` — balance overview, payout form (with bank info), transaction filter + ledger, quick stats
+- `src/pages/ReportsPage.tsx` — KPI with growth %, SVG revenue chart, top products table, chart/table toggle, export
 
 ---
 
-## Chưa làm / Cần làm tiếp
+## Chưa làm (agent tiếp theo cần làm nếu muốn)
 
-- [ ] `cd frontend/admin-console && npm install` — cài recharts (đã thêm vào package.json)
+### Nhóm dự phòng từ plan p3
+- [ ] **Task 7 — Admin ReturnsPage + WithdrawalsPage**: detail modal, approve/reject/refund actions, bulk approve
+- [ ] **Task 8 — Seller EditProductPage**: multi-image upload + drag reorder, variant matrix, shipping info
+- [ ] **Task 9 — buyer-web ShopPage + CheckoutPage**: shop tabs (products/reviews/info), follow button, coupon code, address selector
+
+### Infrastructure
 - [ ] Prisma migrate/generate sau khi setup DATABASE_URL
+- [ ] npm install trong các frontend apps
 - [ ] Cấu hình env: REDIS_URL, SMTP_USER/PASS, VNPAY/MOMO/ZALO keys
+
+---
 
 ## Ghi chú kỹ thuật
 
-1. `GET /categories/tree` đặt TRƯỚC `GET /categories/:slug` — tránh route conflict (đã đúng)
-2. Socket.io dùng dynamic import — tự skip nếu package chưa install
-3. ShippingLabel dùng `shippingAddressSnapshot` JSON (Order không có Address relation)
-4. Seller analytics cần user có `shopId` (đã là seller)
-5. Admin-console recharts: thêm vào package.json, cần npm install
+1. Tất cả pages đều dùng `any` cho API response types — không có TypeScript strict errors từ code mới
+2. SVG charts được inline (không cần recharts) — zero dependencies thêm
+3. Confirm dialog dùng pattern: `useState<{message: string, action: () => void} | null>(null)`
+4. AccountPage avatar upload: FileReader preview + POST /upload/image (FormData)
+5. Filter URL sync: tất cả params đều qua useSearchParams để bookmark/share được

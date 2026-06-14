@@ -283,6 +283,70 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] Growth badges (so sánh với kỳ trước)
 - [x] Backend: GET /admin/analytics/top-sellers, /top-categories, /realtime endpoints
 
+## Session 2026-06-14 (claude/modest-darwin-3g1rs8) — bản 3
+
+### Task 1 — HomePage buyer-web ✅
+- [x] Banner carousel auto-play (useEffect + setInterval 4s), left/right arrows, dot indicators
+- [x] Flash sale countdown timer (HH:MM:SS, useEffect interval to midnight)
+- [x] Flash sale products grid with sold% progress bar
+- [x] Featured categories grid (10 items, getCategoryEmoji)
+- [x] AI recommendations section (GET /ai/recommendations/homepage, horizontal scroll)
+- [x] Best sellers section (GET /products?sort=popular&limit=10)
+
+### Task 2 — ProductsPage + CategoryPage ✅
+- [x] ProductsPage: filter sidebar (price presets + custom range, rating buttons, freeship checkbox)
+- [x] ProductsPage: grid/list toggle (LayoutGrid/List icons)
+- [x] ProductsPage: URL sync (useSearchParams for sort/minPrice/maxPrice/minRating/freeship/page)
+- [x] ProductsPage: list view (image + name/price/rating/shop/freeship badge)
+- [x] CategoryPage: breadcrumb (Home > parent > current)
+- [x] CategoryPage: subcategories grid with emoji fallback
+- [x] CategoryPage: full filter sidebar matching ProductsPage
+- [x] CategoryPage: active filter chips with × remove
+- [x] CategoryPage: grid/list toggle + URL sync
+- [x] CategoryPage: windowed pagination
+
+### Task 3 — AccountPage buyer-web ✅
+- [x] Tab Hồ sơ: avatar upload (FileReader preview + POST /upload/image), edit form (fullName/phone/gender/birthday)
+- [x] Tab Bảo mật: change password form (currentPassword/newPassword/confirmPassword + validation)
+- [x] Tab Địa chỉ: list addresses, inline add/edit form (6 fields + isDefault), CRUD operations
+- [x] Tab Đơn hàng: recent orders table with status badges, link to /orders/:id
+
+### Task 4 — Admin DashboardPage + OrdersPage ✅
+- [x] DashboardPage: 6 KPI cards (users, sellers, todayOrders, monthRevenue, pendingSellers, pendingProducts)
+- [x] DashboardPage: inline SVG MiniAreaChart (area fill + line + dots + x-axis labels)
+- [x] DashboardPage: dual-source revenue data (analytics endpoint + dashboard fallback)
+- [x] DashboardPage: recent orders table (5 rows)
+- [x] DashboardPage: recent users table (5 rows)
+- [x] DashboardPage: quick action link buttons
+- [x] OrdersPage: search + status + date range filter bar
+- [x] OrdersPage: export CSV button
+- [x] OrdersPage: checkbox bulk select + bulk actions bar
+
+### Task 5 — Admin SellersPage + UsersPage ✅
+- [x] SellersPage: search input (shop name/email), status filter tabs
+- [x] SellersPage: bulk select + bulk approve/suspend
+- [x] SellersPage: confirm dialog modal before destructive actions
+- [x] SellersPage: row actions per status (PENDING/ACTIVE/SUSPENDED)
+- [x] SellersPage: suspend mutation (PATCH /admin/sellers/:id/suspend)
+- [x] SellersPage: pagination
+- [x] UsersPage: search + role filter (all/BUYER/SELLER_OWNER/ADMIN_OPERATOR)
+- [x] UsersPage: bulk select + bulk ban/activate
+- [x] UsersPage: confirm dialog modal
+- [x] UsersPage: color-coded status + role badges
+- [x] UsersPage: row actions per status, "Xem Profile" link
+
+### Task 6 — Seller FinancePage + ReportsPage ✅
+- [x] FinancePage: balance overview cards (available/pending/total + totalWithdrawn)
+- [x] FinancePage: payout request form (amount + bankName/accountNumber/accountName)
+- [x] FinancePage: pending withdrawals list
+- [x] FinancePage: transaction filter (type + date range) + paginated ledger table
+- [x] FinancePage: quick stats (last 30 days revenue/orders/fee/net)
+- [x] ReportsPage: KPI cards with growth % indicators vs previous period
+- [x] ReportsPage: inline SVG revenue chart (area + line + dots + date labels)
+- [x] ReportsPage: top products table with mini progress bars
+- [x] ReportsPage: chart/table toggle for daily data
+- [x] ReportsPage: 7/30/90 day range buttons + export CSV
+
 ## Pending / Future Work
 - [ ] Payment gateway integration: cần cấu hình env vars (VNPAY_TMN_CODE, MOMO_PARTNER_CODE, ZALO_APP_ID)
 - [ ] Push notifications (Firebase FCM)
