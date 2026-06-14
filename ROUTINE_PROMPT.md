@@ -20,7 +20,7 @@ cat PROGRESS.md 2>/dev/null || echo "No progress file"
 ## BƯỚC 2 — Đọc kế hoạch hôm nay
 
 Đọc `plans/TODAY.md` để biết tóm tắt.
-Đọc `plans/2026-06-15.md` để biết yêu cầu chức năng cụ thể của từng task.
+Đọc `plans/2026-06-14-p3.md` để biết yêu cầu chức năng cụ thể của từng task.
 Đọc `PROGRESS.md` — những gì đã ✅ thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch
@@ -54,9 +54,9 @@ Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## NHIỆM VỤ HÔM NAY — 2026-06-15
+## NHIỆM VỤ HÔM NAY — 2026-06-14 (bản 3)
 
-> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15.md`
+> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-14-p3.md`
 
 ### Nhóm chính (bắt buộc)
 

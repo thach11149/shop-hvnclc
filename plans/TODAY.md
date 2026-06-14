@@ -1,7 +1,7 @@
 # Kế hoạch hôm nay
 
-**Ngày:** 2026-06-15
-**Chi tiết:** xem [plans/2026-06-15.md](2026-06-15.md)
+**Ngày:** 2026-06-14 (bản 3)
+**Chi tiết:** xem [plans/2026-06-14-p3.md](2026-06-14-p3.md)
 
 ---
 
