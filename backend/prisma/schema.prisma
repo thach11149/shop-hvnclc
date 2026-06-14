@@ -44,6 +44,8 @@ model User {
   referralReceived ReferralInvite? @relation("InviteeInvite")
   marketingMessages MarketingMessageLog[]
   customerSegmentMembers CustomerSegmentMember[]
+  qnaAsked         ProductQnA[]          @relation("QnAAsker")
+  qnaAnswered      ProductQnA[]          @relation("QnAAnswerer")
 
   @@map("users")
 }
@@ -179,6 +181,7 @@ model Shop {
   affiliateLinks  AffiliateLink[]
   disputes        Dispute[]
   staffPermissions ShopStaffPermission[]
+  liveStreams      LiveStream[]
 
   @@map("shops")
 }
@@ -330,6 +333,7 @@ model Product {
   collectionProducts ShopCollectionProduct[]
   wishlistItems    WishlistItem[]
   behaviorEvents   BehaviorEvent[]
+  qnaList          ProductQnA[]
 
   @@map("products")
 }
@@ -2165,4 +2169,90 @@ model Banner {
   updatedAt DateTime @updatedAt
 
   @@map("banners")
+}
+
+// ============================================================
+// PRODUCT Q&A
+// ============================================================
+
+model ProductQnA {
+  id          String        @id @default(uuid())
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id])
+  askerId     String
+  asker       User          @relation("QnAAsker", fields: [askerId], references: [id])
+  question    String
+  answer      String?
+  answeredBy  String?
+  answerer    User?         @relation("QnAAnswerer", fields: [answeredBy], references: [id])
+  answeredAt  DateTime?
+  isPublic    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([productId])
+  @@index([askerId])
+  @@map("product_qna")
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  type        String   @default("INFO")
+  target      String   @default("ALL")
+  isActive    Boolean  @default(true)
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+// ============================================================
+// SYSTEM CONFIG
+// ============================================================
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  group       String   @default("general")
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_configs")
+}
+
+// ============================================================
+// LIVE STREAM
+// ============================================================
+
+model LiveStream {
+  id          String   @id @default(uuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id])
+  title       String
+  description String?
+  streamKey   String   @unique @default(uuid())
+  status      String   @default("SCHEDULED")
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  endedAt     DateTime?
+  viewerCount Int      @default(0)
+  peakViewers Int      @default(0)
+  products    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([shopId])
+  @@map("live_streams")
 }
