@@ -11,24 +11,24 @@ Repo: https://github.com/thach11149/shop-hvnclc
 
 ```bash
 git fetch origin
-git log --oneline origin/claude/elegant-dijkstra-f8na2g -10
+git log --oneline origin/claude/pensive-cerf-w35shf -10
 git branch -r | grep -E "claude/|wip/"
-git show origin/claude/elegant-dijkstra-f8na2g:HANDOFF.md
-git show origin/claude/elegant-dijkstra-f8na2g:PROGRESS.md
+git show origin/claude/pensive-cerf-w35shf:HANDOFF.md
+git show origin/claude/pensive-cerf-w35shf:PROGRESS.md
 ```
 
 ## BƯỚC 2 — Đọc kế hoạch hôm nay
 
 Đọc `plans/TODAY.md` để biết tóm tắt.
-Đọc `plans/2026-06-15.md` để biết yêu cầu chức năng cụ thể của từng task.
+Đọc `plans/2026-06-15-p2.md` để biết yêu cầu chức năng cụ thể của từng task.
 Đọc `PROGRESS.md` — những gì đã ✅ thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch
 
-Branch mới nhất là `claude/elegant-dijkstra-f8na2g` (Agent 3, chứa code cả 3 agent hôm qua). Tạo từ đó:
+Branch mới nhất là `claude/pensive-cerf-w35shf` (chứa code tất cả agents trước). Tạo từ đó:
 
 ```bash
-git checkout -b claude/<tên-mới> origin/claude/elegant-dijkstra-f8na2g
+git checkout -b claude/<tên-mới> origin/claude/pensive-cerf-w35shf
 ```
 
 ## BƯỚC 4 — Triển khai
@@ -57,21 +57,21 @@ Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## NHIỆM VỤ HÔM NAY — 2026-06-15
+## NHIỆM VỤ HÔM NAY — 2026-06-15 (bản 2)
 
-> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15.md`
+> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15-p2.md`
 
 ### Nhóm chính (bắt buộc)
 
-- [ ] **Task 1 — buyer-web ShopPage**: header (banner/avatar/follow), 3 tabs (Sản phẩm/Đánh giá/Thông tin), product grid + filter trong shop
-- [ ] **Task 2 — seller ProductsPage + OrderDetailPage**: filter/bulk/duplicate, order timeline + tracking + actions
-- [ ] **Task 3 — seller WarehousePage + WarehouseInboundPage**: KPI tồn kho, color-coded stock, inbound form + history
-- [ ] **Task 4 — seller FlashSalePage + DisputesPage**: flash sale create (products+flash price+qty), dispute response + counter-evidence
-- [ ] **Task 5 — admin SellerDetailPage**: 4 tabs, KPI+chart, verify/suspend/tier actions
-- [ ] **Task 6 — admin FlashSaleAdminPage + CampaignsPage**: flash sale create+manage, campaigns CRUD + toggle
+- [ ] **Task 1 — buyer CampaignPage + NotificationsPage**: campaign cards countdown/claim, notifications tabs + mark-all-read
+- [ ] **Task 2 — buyer PaymentMethodsPage + ReviewsPage**: liên kết ví/set default, buyer reviews + edit/delete
+- [ ] **Task 3 — seller StaffsPage + QnAManagementPage**: invite staff + roles, Q&A reply + filter unanswered
+- [ ] **Task 4 — seller FreeshippingPage + PayoutPage**: freeship rules CRUD, payout request + history + bank accounts
+- [ ] **Task 5 — seller ReviewManagementPage + InventoryAlertPage**: reply reviews + rating chart, alert KPI + threshold
+- [ ] **Task 6 — admin EmailTemplatesPage + PaymentConfigPage + OperationsReportPage**: template editor + send test, gateway toggle + keys, SLA metrics + fulfillment chart
 
 ### Nhóm dự phòng (nếu còn token)
 
-- [ ] **Task 7 — buyer-web OrderDetailPage**: tracking timeline, per-item review, re-order, dispute banner
-- [ ] **Task 8 — seller NewProductPage**: multi-image + variants + shipping (tương tự EditProductPage)
-- [ ] **Task 9 — admin BIDashboardPage + AffiliateManagementPage**: revenue charts, conversion funnel, affiliate payout
+- [ ] **Task 7 — seller ShopDecorationPage**: banner slider, featured products, announcement bar, theme color
+- [ ] **Task 8 — buyer AIShoppingAssistantPage + TrackingPage**: chat UI + product cards, tracking timeline steps
+- [ ] **Task 9 — admin AdsManagementPage + WarehousesPage**: ads approve/pause/filter, warehouse CRUD
