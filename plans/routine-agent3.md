@@ -11,10 +11,10 @@ Repo: https://github.com/thach11149/shop-hvnclc
 
 ```bash
 git fetch origin
-git log --oneline origin/claude/modest-darwin-3g1rs8 -10
+git log --oneline origin/claude/determined-mendel-bkvz7y -10
 git branch -r | grep -E "claude/|wip/"
-git show origin/claude/modest-darwin-3g1rs8:HANDOFF.md
-git show origin/claude/modest-darwin-3g1rs8:PROGRESS.md
+git show origin/claude/determined-mendel-bkvz7y:HANDOFF.md
+git show origin/claude/determined-mendel-bkvz7y:PROGRESS.md
 ```
 
 ## BƯỚC 2 — Đọc kế hoạch
@@ -24,10 +24,10 @@ Những gì đã ✅ trong PROGRESS.md thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch TỪ BRANCH AGENT 1
 
-Agent 1 đã hoàn thành và branch **chưa merge vào main**. Bắt buộc tạo branch từ đó:
+Agent 1 + Agent 2 đã hoàn thành. Branch mới nhất là của Agent 2, chứa code cả 2 agent trước. Bắt buộc tạo từ đó:
 
 ```bash
-git checkout -b claude/<tên-mới> origin/claude/modest-darwin-3g1rs8
+git checkout -b claude/<tên-mới> origin/claude/determined-mendel-bkvz7y
 ```
 
 ## BƯỚC 4 — Triển khai
