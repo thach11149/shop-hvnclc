@@ -433,3 +433,83 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] AIInventoryForecastPage: alerts tồn kho thấp (≤7 ngày, ≤14 ngày)
 - [x] AIInventoryForecastPage: reorder suggestion
 
+
+## Session 2026-06-15 Agent 3 (claude/elegant-dijkstra-f8na2g)
+
+### Task 1 — Admin ReturnsPage ✅ (Agent 1 bỏ sót)
+- [x] Filter: status dropdown + date range (from/to)
+- [x] Table: mã đơn, người mua, lý do, trạng thái badge, số tiền hoàn, ngày tạo
+- [x] Expand row: evidence gallery (click-to-zoom lightbox) + timeline xử lý
+- [x] Actions: Duyệt (approve), Từ chối (modal + lý do), Hoàn tiền
+- [x] Bulk approve (checkbox + confirm)
+- [x] Export CSV
+
+### Task 2 — Admin WithdrawalsPage ✅ (Agent 1 bỏ sót)
+- [x] KPI cards: Đang chờ duyệt (count + tổng tiền) + Kết quả lọc
+- [x] Filter: status tabs + date range + min/max amount
+- [x] Table: seller, số tiền, phương thức, tài khoản NH, trạng thái, ngày yêu cầu
+- [x] Bulk approve: confirm dialog cảnh báo
+- [x] Approve modal: nhập transaction ID + xác nhận
+- [x] Reject modal: nhập lý do
+
+### Task 3 — Admin PromotionsPage ✅
+- [x] Filter: search (tên/mã), loại giảm giá, trạng thái (active/upcoming/expired/inactive)
+- [x] Table đầy đủ: tên, mã, giảm giá, đã dùng/giới hạn, thời gian, trạng thái
+- [x] Create/Edit modal: tên, mã, loại, giá trị, đơn min, max discount, giới hạn, scope, ngày
+- [x] Bulk activate/deactivate (checkbox selection)
+- [x] Toggle individual + delete
+
+### Task 4 — Admin BannersPage ✅
+- [x] Preview thumbnail thật trong card
+- [x] Create/edit modal: ImageUpload component + URL fallback, tiêu đề, link, target page, vị trí, schedule dates
+- [x] ↑↓ priority reorder (gọi PATCH /admin/banners/reorder)
+- [x] Toggle active/inactive button on card
+- [x] Backend: PATCH /admin/banners/reorder, GET /admin/banners/all
+
+### Task 5 — Admin DisputesPage ✅ (admin view)
+- [x] Filter bar: search mã đơn, status dropdown, date range
+- [x] List panel: order#, shop, lý do, trạng thái, ngày
+- [x] Detail panel: evidence gallery (click-to-zoom lightbox), timeline tin nhắn (buyer/seller/admin colored)
+- [x] Actions: Giải quyết modal (buyer/seller/partial + lý do), Leo thang, Yêu cầu bằng chứng
+- [x] Backend: PATCH /admin/disputes/:id/resolve, /escalate, /request-evidence
+- [x] dispute.service.ts: escalate() + requestEvidence() methods
+
+### Task 6 — Admin ProductsPage (kiểm duyệt) ✅
+- [x] Filter: status tabs (chờ duyệt/đang bán/từ chối/ẩn/tất cả) + seller search
+- [x] Table: thumbnail, tên (clickable), seller, giá, trạng thái, ngày tạo
+- [x] Product detail modal: image gallery (prev/next + thumbnail strip), mô tả, variants table
+- [x] Bulk actions: Duyệt/Từ chối/Ẩn + confirm dialog với summary list
+- [x] Row actions: Approve, Reject (modal + lý do), Hide
+- [x] Backend: PATCH /admin/products/:id/status, PATCH /admin/products/bulk-status, GET /admin/products/:id
+
+### Task 7 — Admin ShippingCarriersPage ✅
+- [x] List với logo, tên, COD badge, thời gian giao, tracking URL, trạng thái
+- [x] Toggle active/inactive
+- [x] Đặt mặc định (Star button)
+- [x] Create/edit modal: tên, mã, logo URL, tracking URL template, COD toggle, estimated days, bảng phí (region+weight+fee)
+- [x] Backend: GET/POST /admin/shipping-carriers, PATCH /admin/shipping-carriers/:id
+
+### Task 8 — Admin FraudCasesPage ✅
+- [x] Status tabs: Mới/Đang điều tra/Đã xác nhận/Đã bỏ qua
+- [x] Filter: risk level, date range
+- [x] Fraud card: risk score 0-100 color-coded bar, risk factors badges, border-left color indicator
+- [x] Detail modal: breakdown chi tiết, breakdown JSON, related cases
+- [x] Actions: Bắt đầu điều tra, Nhận định sai, Xác nhận gian lận, Chặn người dùng (confirm)
+- [x] Backend: PATCH /admin/fraud/cases/:id/status, /block-user
+- [x] fraud.service.ts: blockUserFromCase() - set user status BANNED
+
+### Task 9 — Admin MarketingSegmentsPage + MarketingAutomationPage ✅
+- [x] SegmentsPage: CRUD (create/edit modal), toggle active, estimated reach, export user list
+- [x] AutomationPage: list flows với trigger/action display, toggle on/off
+- [x] AutomationPage: view flow detail modal với vertical timeline
+- [x] AutomationPage: create wizard 3 bước (Cơ bản → Đối tượng → Hành động)
+
+### Task 10 — buyer-web ReferralPage + DisputeDetailPage ✅
+- [x] ReferralPage: referral code large + copy, link + copy, share Zalo/Facebook
+- [x] ReferralPage: stats 4 cards (invited/qualified/pending/earned)
+- [x] ReferralPage: history table, how-it-works section
+- [x] DisputeDetailPage: vertical timeline icon+timestamp (buyer/seller/admin colored)
+- [x] DisputeDetailPage: evidence gallery click-to-fullscreen lightbox
+- [x] DisputeDetailPage: submit thêm bằng chứng (upload files → POST /disputes/:id/evidence)
+- [x] DisputeDetailPage: estimated resolution time display
+- [x] DisputeDetailPage: status config với label + color + icon

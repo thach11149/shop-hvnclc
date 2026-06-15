@@ -1,3 +1,61 @@
+# HANDOFF — 2026-06-15 Agent 3 (claude/elegant-dijkstra-f8na2g)
+
+## Branch: claude/elegant-dijkstra-f8na2g
+
+## Base: Merged from claude/determined-mendel-bkvz7y (Agent 2)
+
+---
+
+## Đã hoàn thành trong session này (10/10 tasks)
+
+| Task | Files | Mô tả |
+|------|-------|-------|
+| Task 1 | admin/ReturnsPage.tsx | Filter+expand+gallery+timeline+bulk+CSV |
+| Task 2 | admin/WithdrawalsPage.tsx | KPI+filter+bulk+approve-modal+reject-modal |
+| Task 3 | admin/PromotionsPage.tsx | Search+filter+create/edit+bulk+toggle+delete |
+| Task 4 | admin/BannersPage.tsx | ImageUpload+schedule+reorder+toggle |
+| Task 5 | admin/DisputesPage.tsx | Evidence gallery+timeline+resolve+escalate |
+| Task 6 | admin/ProductsPage.tsx | Detail modal+bulk status+row actions |
+| Task 7 | admin/ShippingCarriersPage.tsx | Modal+rates table+toggle+default |
+| Task 8 | admin/FraudCasesPage.tsx | Risk bar+detail modal+block user |
+| Task 9 | admin/MarketingSegmentsPage.tsx + MarketingAutomationPage.tsx | CRUD+wizard |
+| Task 10 | buyer/ReferralPage.tsx + DisputeDetailPage.tsx | Share+timeline+evidence |
+
+---
+
+## Backend changes trong session này
+
+### admin.routes.ts: PATCH products/:id/status, bulk-status, GET products/:id, PATCH banners/reorder, GET banners/all, PATCH promotions/:id, toggle, DELETE, PATCH return-requests/:id approve/reject, bulk-approve, withdrawals bulk-approve, GET/POST/PATCH shipping-carriers
+
+### dispute.routes.ts: PATCH /admin/disputes/:id resolve/escalate/request-evidence
+
+### dispute.service.ts: escalate(), requestEvidence(), fixed resolve() favor types
+
+### fraud.routes.ts: PATCH cases/:id/status, /block-user
+
+### fraud.service.ts: blockUserFromCase()
+
+---
+
+## Ghi chú kỹ thuật
+
+1. BannersPage admin dùng GET /admin/banners/all (endpoint mới) để lấy cả banner ẩn
+2. DisputesPage admin: resolve dùng PATCH (mới, RESTful) thay POST cũ
+3. ShippingCarrier Prisma: thiếu logoUrl/trackingUrl/codSupport — cần migration
+4. Marketing paths: /marketing/segments và /marketing/automations — verify backend
+
+---
+
+## Chưa làm / Agent tiếp theo
+
+- [ ] Prisma migration ShippingCarrier model extra fields
+- [ ] Verify marketing automation API paths
+- [ ] DisputeDetailPage: verify POST /disputes/:id/evidence backend endpoint
+
+---
+
+# ===== HANDOFF CŨ (Agent 2) =====
+
 # HANDOFF — 2026-06-14 Agent 2 (claude/determined-mendel-bkvz7y)
 
 ## Branch: claude/determined-mendel-bkvz7y
