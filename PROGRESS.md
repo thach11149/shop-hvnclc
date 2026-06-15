@@ -423,3 +423,28 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [x] Card toggles for enabling/disabling gateways (visual feedback)
 - [x] OperationsReportPage: SLA gauges (SVG circle), fulfillment breakdown chart
 - [x] 4 health metric cards (green/red based on targets), CSV export button
+
+### Task 7 (Bonus) — seller ShopDecorationPage ✅
+- [x] 4 tabs: Banners / Sản phẩm nổi bật / Thông báo / Giao diện
+- [x] Banner slider preview with navigation dots + left/right arrows
+- [x] AddBannerModal with URL preview + optional click link
+- [x] Featured products grid + product picker modal with search
+- [x] Announcement bar: live preview with bgColor/textColor pickers
+- [x] Theme: 6 preset colors + custom color input, live button preview
+- [x] API: /seller/shop/banners, /featured-products, /announcement, /theme
+
+### Task 8 (Bonus) — buyer AIShoppingAssistantPage + TrackingPage ✅
+- [x] AIShoppingAssistantPage: chat UI, ProductCardView component with add-to-cart
+- [x] sessionId tracking, 6 suggestion chips (shown when ≤2 messages)
+- [x] Typing indicator (3-dot bounce animation), clearConversation button
+- [x] TrackingPage: 5-step timeline (ordered/confirmed/packed/shipped/delivered)
+- [x] trackingEvents query (GET /orders/:id/tracking) shown as carrier timeline
+- [x] Ring effect on current step, full address display, refetchInterval: 60s
+
+### Task 9 (Bonus) — admin AdsManagementPage + WarehousesPage ✅
+- [x] AdsManagementPage: 3 tabs (Chiến dịch/Từ khóa/Doanh thu)
+- [x] Status filter (ALL/PENDING_REVIEW/ACTIVE/PAUSED/ENDED), approve/reject/pause/resume actions
+- [x] RevenueTab: 6 KPI cards (Doanh thu/Số chiến dịch/CPC/Tỷ lệ click/Lượt hiển thị/ROI)
+- [x] WarehousesPage: 4 KPI cards, search + status filter, 63 provinces dropdown
+- [x] Edit modal (PATCH /admin/warehouses/:id), delete with confirm dialog
+- [x] Toggle active/inactive, manager name + phone fields, district column
