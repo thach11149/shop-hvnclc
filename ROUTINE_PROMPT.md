@@ -11,22 +11,25 @@ Repo: https://github.com/thach11149/shop-hvnclc
 
 ```bash
 git fetch origin
-git log --oneline origin/main -15
+git log --oneline origin/claude/elegant-dijkstra-f8na2g -10
 git branch -r | grep -E "claude/|wip/"
-cat HANDOFF.md 2>/dev/null || echo "No handoff file"
-cat PROGRESS.md 2>/dev/null || echo "No progress file"
+git show origin/claude/elegant-dijkstra-f8na2g:HANDOFF.md
+git show origin/claude/elegant-dijkstra-f8na2g:PROGRESS.md
 ```
 
 ## BƯỚC 2 — Đọc kế hoạch hôm nay
 
 Đọc `plans/TODAY.md` để biết tóm tắt.
-Đọc `plans/2026-06-14-p3.md` để biết yêu cầu chức năng cụ thể của từng task.
+Đọc `plans/2026-06-15.md` để biết yêu cầu chức năng cụ thể của từng task.
 Đọc `PROGRESS.md` — những gì đã ✅ thì bỏ qua hoàn toàn.
 
 ## BƯỚC 3 — Tạo branch
 
-- Có branch `claude/xxx` chưa merge → tạo từ branch đó
-- Không có WIP → tạo từ `origin/main` mới nhất
+Branch mới nhất là `claude/elegant-dijkstra-f8na2g` (Agent 3, chứa code cả 3 agent hôm qua). Tạo từ đó:
+
+```bash
+git checkout -b claude/<tên-mới> origin/claude/elegant-dijkstra-f8na2g
+```
 
 ## BƯỚC 4 — Triển khai
 
@@ -54,21 +57,21 @@ Không tự merge. Đọc `CLAUDE.md` để biết thêm quy tắc.
 
 ---
 
-## NHIỆM VỤ HÔM NAY — 2026-06-14 (bản 3)
+## NHIỆM VỤ HÔM NAY — 2026-06-15
 
-> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-14-p3.md`
+> Chi tiết yêu cầu chức năng từng task: xem `plans/2026-06-15.md`
 
 ### Nhóm chính (bắt buộc)
 
-- [ ] **Task 1 — HomePage buyer-web**: banner carousel auto-play, flash sale countdown, danh mục nổi bật, AI recommendations, sản phẩm bán chạy
-- [ ] **Task 2 — ProductsPage + CategoryPage**: filter sidebar (giá/rating/category/freeship), grid/list toggle, sort, URL sync, breadcrumb, subcategories
-- [ ] **Task 3 — AccountPage buyer-web**: 4 tabs — hồ sơ (avatar upload + edit form), bảo mật (đổi mật khẩu), địa chỉ CRUD, đơn hàng gần đây
-- [ ] **Task 4 — Admin DashboardPage + OrdersPage**: KPI cards thật, AreaChart 30 ngày, recent orders/users, OrdersPage filter/search/export
-- [ ] **Task 5 — Admin SellersPage + UsersPage**: filter nâng cao, bulk approve/suspend/ban, confirm dialogs, row actions
-- [ ] **Task 6 — Seller FinancePage + ReportsPage**: balance overview, transaction history, payout request, revenue chart, top products
+- [ ] **Task 1 — buyer-web ShopPage**: header (banner/avatar/follow), 3 tabs (Sản phẩm/Đánh giá/Thông tin), product grid + filter trong shop
+- [ ] **Task 2 — seller ProductsPage + OrderDetailPage**: filter/bulk/duplicate, order timeline + tracking + actions
+- [ ] **Task 3 — seller WarehousePage + WarehouseInboundPage**: KPI tồn kho, color-coded stock, inbound form + history
+- [ ] **Task 4 — seller FlashSalePage + DisputesPage**: flash sale create (products+flash price+qty), dispute response + counter-evidence
+- [ ] **Task 5 — admin SellerDetailPage**: 4 tabs, KPI+chart, verify/suspend/tier actions
+- [ ] **Task 6 — admin FlashSaleAdminPage + CampaignsPage**: flash sale create+manage, campaigns CRUD + toggle
 
 ### Nhóm dự phòng (nếu còn token)
 
-- [ ] **Task 7 — Admin ReturnsPage + WithdrawalsPage**: detail modal, approve/reject/refund actions, bulk approve
-- [ ] **Task 8 — Seller EditProductPage**: multi-image upload + drag reorder, variant matrix, shipping info
-- [ ] **Task 9 — buyer-web ShopPage + CheckoutPage**: shop tabs (products/reviews/info), follow button, coupon code, address selector
+- [ ] **Task 7 — buyer-web OrderDetailPage**: tracking timeline, per-item review, re-order, dispute banner
+- [ ] **Task 8 — seller NewProductPage**: multi-image + variants + shipping (tương tự EditProductPage)
+- [ ] **Task 9 — admin BIDashboardPage + AffiliateManagementPage**: revenue charts, conversion funnel, affiliate payout

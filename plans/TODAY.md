@@ -1,7 +1,7 @@
 # Kế hoạch hôm nay
 
-**Ngày:** 2026-06-14 (bản 3)
-**Chi tiết:** xem [plans/2026-06-14-p3.md](2026-06-14-p3.md)
+**Ngày:** 2026-06-15
+**Chi tiết:** xem [plans/2026-06-15.md](2026-06-15.md)
 
 ---
 
@@ -9,15 +9,15 @@
 
 **NHÓM CHÍNH — bắt buộc hoàn thành cả 6:**
 
-1. **HomePage buyer-web** — Banner carousel auto-play, Flash Sale countdown, danh mục nổi bật, "Gợi ý cho bạn" (AI), sản phẩm bán chạy
-2. **ProductsPage + CategoryPage buyer-web** — filter sidebar (giá/rating/category/freeship), grid/list toggle, sort, URL sync, breadcrumb, subcategories
-3. **AccountPage buyer-web** — 4 tabs: hồ sơ (avatar upload, edit form), bảo mật (đổi mật khẩu), địa chỉ (CRUD), đơn hàng gần đây
-4. **Admin DashboardPage + OrdersPage** — KPI cards thật, AreaChart 30 ngày, recent orders/users, OrdersPage với filter/search/export
-5. **Admin SellersPage + UsersPage** — filter nâng cao, bulk approve/suspend/ban, confirm dialogs, row actions
-6. **Seller FinancePage + ReportsPage** — balance overview, transaction history, payout request, revenue chart, top products
+1. **buyer-web ShopPage** — header (banner/avatar/follow), 3 tabs (Sản phẩm/Đánh giá/Thông tin), product grid + filter trong shop
+2. **seller ProductsPage + OrderDetailPage** — filter/bulk/duplicate product, order timeline step-by-step + tracking + actions
+3. **seller WarehousePage + WarehouseInboundPage** — KPI tồn kho, color-coded stock, quick adjust, inbound form + history
+4. **seller FlashSalePage + DisputesPage** — flash sale create (products+flash price+qty), seller dispute response + counter-evidence
+5. **admin SellerDetailPage** — 4 tabs (Tổng quan/Sản phẩm/Đơn hàng/Vi phạm), KPI+chart, verify/suspend/tier actions
+6. **admin FlashSaleAdminPage + CampaignsPage** — flash sale create+manage, campaigns CRUD + duplicate + toggle
 
 **NHÓM DỰ PHÒNG — làm tiếp nếu còn token:**
 
-7. **Admin ReturnsPage + WithdrawalsPage** — detail modal, approve/reject/refund actions, bulk approve
-8. **Seller EditProductPage** — multi-image upload + drag reorder, variant matrix, shipping info
-9. **buyer-web ShopPage + CheckoutPage** — shop tabs (products/reviews/info), follow button, coupon code, address selector modal
+7. **buyer-web OrderDetailPage** — tracking timeline, per-item review button, re-order, dispute banner
+8. **seller NewProductPage** — multi-image + variants + shipping (tương tự EditProductPage)
+9. **admin BIDashboardPage + AffiliateManagementPage** — revenue charts by category/region, conversion funnel, affiliate payout management
