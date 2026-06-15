@@ -31,6 +31,8 @@ const ReferralPage = lazy(() => import('./pages/ReferralPage'));
 // Phase 4
 const AIShoppingAssistantPage = lazy(() => import('./pages/AIShoppingAssistantPage'));
 const RecommendationsPage = lazy(() => import('./pages/RecommendationsPage'));
+// Session 2026-06-15
+const CampaignPage = lazy(() => import('./pages/CampaignPage'));
 // New pages
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const PaymentMethodsPage = lazy(() => import('./pages/PaymentMethodsPage'));
@@ -78,6 +80,7 @@ export default function App() {
           <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
           {/* Phase 2 */}
           <Route path="/categories/:slug" element={<CategoryPage />} />
+          <Route path="/campaigns" element={<CampaignPage />} />
           <Route path="/campaigns/:slug" element={<CampaignDetailPage />} />
           <Route path="/account/followed-shops" element={<ProtectedRoute><FollowedShopsPage /></ProtectedRoute>} />
           {/* Phase 3 */}

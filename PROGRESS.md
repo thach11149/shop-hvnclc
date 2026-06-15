@@ -376,3 +376,50 @@ Vietnamese marketplace (ecommerce) platform built with:
 - [ ] Mobile app (React Native)
 - [ ] Prisma migrate: cần chạy sau khi setup DB với schema mới
 - [ ] npm install recharts trong admin-console (đã add vào package.json)
+
+## Session 2026-06-15 (claude/eager-turing-wevzel)
+
+### Task 1 — buyer CampaignPage + NotificationsPage ✅
+- [x] CampaignPage: campaigns listing at /campaigns with ACTIVE/UPCOMING/ENDED tabs
+- [x] Campaign cards: countdown timer (days/hours:min:sec), join button, product count
+- [x] Route added: /campaigns → CampaignPage
+- [x] NotificationsPage: type filter tabs (ORDER/PROMOTION/CHAT/DISPUTE/SHOPPING/SYSTEM)
+- [x] Grouped by date (Hôm nay / Hôm qua / date), read/unread badges
+- [x] Mark one as read, delete individual, mark-all-read
+
+### Task 2 — buyer PaymentMethodsPage + ReviewsPage ✅
+- [x] PaymentMethodsPage: linked wallets section (MoMo/ZaloPay/VNPay) with link/unlink
+- [x] Bank accounts: list with set-default, delete, add new (modal with bank selector)
+- [x] Real API calls: /account/bank-accounts, /account/linked-wallets
+- [x] ReviewsPage: edit review modal with interactive star rating + comment
+- [x] Delete review with confirm, pending-reviews tab with count badge
+- [x] Image gallery display for existing reviews
+
+### Task 3 — seller StaffsPage + QnAManagementPage ✅
+- [x] StaffsPage: role presets (MANAGER/WAREHOUSE/SUPPORT/CUSTOM) with preset permissions
+- [x] Table view with role badge, permission chips, edit/delete actions
+- [x] Edit permissions modal with grouped permission checkboxes
+- [x] QnAManagementPage: unanswered count badge, pagination
+- [x] Product dropdown filter, search input, total/unansweredCount from API
+
+### Task 4 — seller FreeshippingPage + PayoutPage ✅
+- [x] FreeshippingPage: edit modal (reuses create form), delete with confirm
+- [x] Status badges (Đang hoạt động/Hết hạn/Chưa bắt đầu), usage counter display
+- [x] PayoutPage: request payout modal (amount + quick amounts + bank account radio)
+- [x] Add bank account modal, set-default, delete bank accounts
+- [x] 3 tabs: Đơn hoàn thành / Lịch sử rút tiền / Tài khoản ngân hàng
+
+### Task 5 — seller ReviewManagementPage + InventoryAlertPage ✅
+- [x] ReviewManagementPage: rating breakdown bar chart (SVG, inline)
+- [x] Quick reply templates (4 presets), unreplied filter tab
+- [x] InventoryAlertPage: configurable threshold modal with presets (5/10/20/50)
+- [x] 4 KPI cards (Sắp hết/Hết hàng/Tổng SKU/Cần nhập gấp)
+- [x] Restock modal with custom quantity + quick buttons, per-SKU action
+
+### Task 6 — admin EmailTemplatesPage + PaymentConfigPage + OperationsReportPage ✅
+- [x] EmailTemplatesPage: 7 templates, category filter, send test email modal
+- [x] Clickable variable chips to insert into body, unsaved-change indicator (orange dot)
+- [x] PaymentConfigPage: real API save/load, "Test kết nối" button per gateway
+- [x] Card toggles for enabling/disabling gateways (visual feedback)
+- [x] OperationsReportPage: SLA gauges (SVG circle), fulfillment breakdown chart
+- [x] 4 health metric cards (green/red based on targets), CSV export button
