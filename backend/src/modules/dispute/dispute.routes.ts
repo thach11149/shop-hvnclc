@@ -51,5 +51,25 @@ export function createDisputeRouter(disputeService: DisputeService): Router {
     sendSuccess(res, data);
   });
 
+  // === ADMIN DISPUTES EXTENDED (added by agent3) ===
+  router.patch('/admin/disputes/:id/resolve', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+    const { resolution, refundAmount, note } = req.body;
+    let favor = 'admin';
+    if (resolution === 'buyer') favor = 'buyer';
+    else if (resolution === 'seller') favor = 'seller';
+    const data = await disputeService.resolve(req.params.id, note || `Giải quyết: ${resolution}`, favor, req.user?.id ?? 'system');
+    sendSuccess(res, data);
+  });
+
+  router.patch('/admin/disputes/:id/escalate', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+    const data = await disputeService.escalate(req.params.id, req.user?.id ?? 'system');
+    sendSuccess(res, data);
+  });
+
+  router.patch('/admin/disputes/:id/request-evidence', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: AuthRequest, res: Response) => {
+    const data = await disputeService.requestEvidence(req.params.id, req.body.message);
+    sendSuccess(res, data);
+  });
+
   return router;
 }
