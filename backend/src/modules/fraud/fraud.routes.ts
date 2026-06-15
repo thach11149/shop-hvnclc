@@ -34,5 +34,16 @@ export function createFraudRouter(fraudService: FraudService): Router {
     sendSuccess(res, data);
   });
 
+  // === FRAUD CASES EXTENDED (added by agent3) ===
+  router.patch('/admin/fraud/cases/:id/status', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res: Response) => {
+    const data = await fraudService.updateCaseStatus(req.params.id, req.body.status);
+    sendSuccess(res, data);
+  });
+
+  router.patch('/admin/fraud/cases/:id/block-user', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req: any, res: Response) => {
+    const data = await fraudService.blockUserFromCase(req.params.id, req.user?.id);
+    sendSuccess(res, data);
+  });
+
   return router;
 }

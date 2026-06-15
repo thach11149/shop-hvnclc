@@ -1,96 +1,589 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { LayoutGrid, List, SlidersHorizontal, Star, Truck } from 'lucide-react';
 import apiClient from '../api/client';
+import ProductCard from '../components/product/ProductCard';
+
+function getCategoryEmoji(slug: string): string {
+  const map: Record<string, string> = {
+    'dien-tu': '📱',
+    'dien-thoai': '📱',
+    'laptop': '💻',
+    'may-tinh-bang': '📱',
+    'thoi-trang': '👗',
+    'ao': '👕',
+    'quan': '👖',
+    'giay-dep': '👟',
+    'gia-dung': '🏠',
+    'lam-dep': '💄',
+    'the-thao': '⚽',
+    'sach': '📚',
+    'do-choi': '🧸',
+    'thuc-pham': '🍎',
+    'suc-khoe': '💊',
+    'nha-bep': '🍳',
+    'xe-may': '🛵',
+    'o-to': '🚗',
+    'van-phong': '📋',
+    'thu-cung': '🐾',
+  };
+  return map[slug] || '🛍️';
+}
+
+const PRICE_PRESETS = [
+  { label: 'Dưới 100K', min: 0, max: 100000 },
+  { label: '100K–500K', min: 100000, max: 500000 },
+  { label: '500K–1M', min: 500000, max: 1000000 },
+  { label: 'Trên 1M', min: 1000000, max: undefined },
+];
+
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'popular', label: 'Bán chạy' },
+  { value: 'price_asc', label: 'Giá thấp – cao' },
+  { value: 'price_desc', label: 'Giá cao – thấp' },
+  { value: 'rating', label: 'Đánh giá cao' },
+];
 
 export default function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Temp filter state (applied on "Áp dụng")
+  const [tempMinPrice, setTempMinPrice] = useState('');
+  const [tempMaxPrice, setTempMaxPrice] = useState('');
+  const [tempMinRating, setTempMinRating] = useState<number>(0);
+  const [tempFreeship, setTempFreeship] = useState(false);
+  const [tempPreset, setTempPreset] = useState<number | null>(null);
+
+  // Read active filters from URL
+  const sort = searchParams.get('sort') || 'newest';
+  const page = Number(searchParams.get('page') || 1);
+  const minPrice = searchParams.get('minPrice') || '';
+  const maxPrice = searchParams.get('maxPrice') || '';
+  const minRating = searchParams.get('minRating') || '';
+  const freeship = searchParams.get('freeship') === 'true';
+
+  const setParam = (updates: Record<string, string | undefined>) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v === undefined || v === '') next.delete(k);
+      else next.set(k, v);
+    });
+    next.set('page', '1');
+    setSearchParams(next);
+  };
+
+  // Fetch category info (id, name, description, parentId, parent, children)
   const { data: category, isLoading: catLoading } = useQuery({
     queryKey: ['category', slug],
-    queryFn: () => apiClient.get(`/categories/${slug}`).then(r => r.data.data),
-  });
-
-  const { data: products, isLoading: prodLoading } = useQuery({
-    queryKey: ['category-products', slug],
-    queryFn: () => apiClient.get(`/products?categorySlug=${slug}&limit=24`).then(r => r.data.data),
+    queryFn: () =>
+      apiClient.get(`/categories/${slug}`).then((r: any) => r.data.data),
     enabled: !!slug,
   });
 
-  const isLoading = catLoading || prodLoading;
+  // Fetch products for this category
+  const { data: productsData, isLoading: prodLoading } = useQuery({
+    queryKey: ['category-products', slug, { sort, page, minPrice, maxPrice, minRating, freeship }],
+    queryFn: () =>
+      apiClient
+        .get('/products', {
+          params: {
+            categorySlug: slug,
+            sort,
+            page,
+            limit: 20,
+            ...(minPrice ? { minPrice } : {}),
+            ...(maxPrice ? { maxPrice } : {}),
+            ...(minRating ? { minRating } : {}),
+            ...(freeship ? { freeship: 'true' } : {}),
+          },
+        })
+        .then((r: any) => r.data.data),
+    enabled: !!slug,
+  });
+
+  const products: any[] = Array.isArray(productsData)
+    ? productsData
+    : productsData?.data || productsData?.items || [];
+  const totalPages: number = productsData?.totalPages || productsData?.meta?.totalPages || 1;
+  const totalCount: number = productsData?.total || productsData?.meta?.total || 0;
+
+  const children: any[] = category?.children || [];
+  const parent: any = category?.parent || null;
+
+  const applyFilters = () => {
+    const updates: Record<string, string | undefined> = {};
+    if (tempPreset !== null) {
+      const p = PRICE_PRESETS[tempPreset];
+      updates.minPrice = p.min ? String(p.min) : undefined;
+      updates.maxPrice = p.max ? String(p.max) : undefined;
+    } else {
+      updates.minPrice = tempMinPrice || undefined;
+      updates.maxPrice = tempMaxPrice || undefined;
+    }
+    updates.minRating = tempMinRating > 0 ? String(tempMinRating) : undefined;
+    updates.freeship = tempFreeship ? 'true' : undefined;
+    setParam(updates);
+  };
+
+  const clearFilters = () => {
+    setTempMinPrice('');
+    setTempMaxPrice('');
+    setTempMinRating(0);
+    setTempFreeship(false);
+    setTempPreset(null);
+    const next = new URLSearchParams();
+    if (sort !== 'newest') next.set('sort', sort);
+    setSearchParams(next);
+  };
+
+  const activeFilterCount = [minPrice, maxPrice, minRating, freeship ? 'y' : ''].filter(Boolean).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-4">
-        <Link to="/" className="hover:text-primary-600">Trang chủ</Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-800">{category?.name || slug}</span>
+      <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
+        <Link to="/" className="hover:text-primary-600 transition-colors">Trang chủ</Link>
+        {parent && (
+          <>
+            <span>/</span>
+            <Link
+              to={`/categories/${parent.slug}`}
+              className="hover:text-primary-600 transition-colors"
+            >
+              {parent.name}
+            </Link>
+          </>
+        )}
+        <span>/</span>
+        <span className="text-gray-800 font-medium">{catLoading ? '...' : (category?.name || slug)}</span>
       </nav>
 
       {/* Category Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{category?.name || 'Danh mục'}</h1>
-        {category?.description && <p className="text-gray-500 mt-1">{category.description}</p>}
+        <h1 className="text-2xl font-bold text-gray-800">
+          {catLoading ? (
+            <span className="inline-block h-8 w-48 bg-gray-100 rounded animate-pulse" />
+          ) : (
+            category?.name || 'Danh mục'
+          )}
+        </h1>
+        {category?.description && (
+          <p className="text-gray-500 mt-1 text-sm">{category.description}</p>
+        )}
       </div>
 
       {/* Subcategories */}
-      {category?.children?.length > 0 && (
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-3 mb-6">
-          {category.children.map((sub: any) => (
-            <Link
-              key={sub.id}
-              to={`/categories/${sub.slug}`}
-              className="flex flex-col items-center p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              {sub.image && <img src={sub.image} alt={sub.name} className="w-12 h-12 object-contain mb-2" />}
-              <span className="text-xs text-center text-gray-700">{sub.name}</span>
-            </Link>
-          ))}
-        </div>
+      {children.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-base font-semibold text-gray-700 mb-3">Danh mục con</h2>
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+            {children.map((sub: any) => (
+              <Link
+                key={sub.id}
+                to={`/categories/${sub.slug}`}
+                className="flex flex-col items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow group"
+              >
+                <div className="w-12 h-12 mb-2 flex items-center justify-center">
+                  {sub.image ? (
+                    <img
+                      src={sub.image}
+                      alt={sub.name}
+                      className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
+                    />
+                  ) : (
+                    <span className="text-3xl group-hover:scale-110 transition-transform inline-block">
+                      {getCategoryEmoji(sub.slug)}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-center text-gray-700 line-clamp-2 leading-tight">
+                  {sub.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
-      {/* Products */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg animate-pulse h-56" />
-          ))}
-        </div>
-      ) : products?.data?.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <p className="text-4xl mb-4">📦</p>
-          <p>Chưa có sản phẩm nào trong danh mục này</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {products?.data?.map((product: any) => (
-            <Link
-              key={product.id}
-              to={`/products/${product.slug}`}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden group"
-            >
-              <div className="aspect-square overflow-hidden">
-                <img
-                  src={product.images?.[0]?.url || 'https://via.placeholder.com/200'}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+      {/* Main content: sidebar + products */}
+      <div className="flex gap-6">
+        {/* Filter Sidebar */}
+        <aside className="w-60 shrink-0 self-start sticky top-4">
+          <div className="card p-4 space-y-5">
+            <div className="flex items-center gap-2 font-semibold text-gray-800">
+              <SlidersHorizontal size={16} />
+              <span>Bộ lọc</span>
+              {activeFilterCount > 0 && (
+                <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Khoảng giá</p>
+              <div className="grid grid-cols-2 gap-1.5 mb-3">
+                {PRICE_PRESETS.map((preset, idx) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => setTempPreset(tempPreset === idx ? null : idx)}
+                    className={`text-xs py-1.5 px-2 rounded border transition-colors ${
+                      tempPreset === idx
+                        ? 'bg-primary-50 border-primary-500 text-primary-700 font-medium'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  placeholder="Từ"
+                  value={tempMinPrice}
+                  onChange={e => {
+                    setTempMinPrice(e.target.value);
+                    setTempPreset(null);
+                  }}
+                  className="input text-xs py-1.5 w-full"
+                />
+                <span className="text-gray-400 text-xs shrink-0">–</span>
+                <input
+                  type="number"
+                  placeholder="Đến"
+                  value={tempMaxPrice}
+                  onChange={e => {
+                    setTempMaxPrice(e.target.value);
+                    setTempPreset(null);
+                  }}
+                  className="input text-xs py-1.5 w-full"
                 />
               </div>
-              <div className="p-2">
-                <p className="text-sm text-gray-800 line-clamp-2 mb-1">{product.name}</p>
-                <p className="text-primary-600 font-semibold text-sm">
-                  {Number(product.minPrice || product.skus?.[0]?.price || 0).toLocaleString('vi-VN')}₫
-                </p>
-                {product.reviewCount > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    {product.avgRating?.toFixed(1)} ⭐ ({product.reviewCount})
-                  </p>
-                )}
+            </div>
+
+            {/* Rating */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Đánh giá tối thiểu</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setTempMinRating(tempMinRating === r ? 0 : r)}
+                    className={`flex items-center gap-0.5 px-2 py-1 rounded border text-xs transition-colors ${
+                      tempMinRating === r
+                        ? 'bg-yellow-50 border-yellow-400 text-yellow-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    {r}
+                    <Star
+                      size={10}
+                      className={
+                        tempMinRating >= r
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-300'
+                      }
+                    />
+                  </button>
+                ))}
               </div>
-            </Link>
-          ))}
+            </div>
+
+            {/* Freeship */}
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={tempFreeship}
+                  onChange={e => setTempFreeship(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="flex items-center gap-1.5 text-sm text-gray-700">
+                  <Truck size={14} className="text-green-600" />
+                  Miễn phí vận chuyển
+                </span>
+              </label>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={applyFilters}
+                className="flex-1 btn-primary text-sm py-1.5"
+              >
+                Áp dụng
+              </button>
+              <button
+                onClick={clearFilters}
+                className="flex-1 text-sm py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Products Area */}
+        <div className="flex-1 min-w-0">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between mb-4 gap-4">
+            <div>
+              {totalCount > 0 && (
+                <p className="text-sm text-gray-500">
+                  {totalCount.toLocaleString('vi-VN')} sản phẩm
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <select
+                value={sort}
+                onChange={e => setParam({ sort: e.target.value })}
+                className="input w-auto text-sm py-1.5"
+              >
+                {SORT_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <List size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Active filter badges */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(minPrice || maxPrice) && (
+                <span className="flex items-center gap-1 text-xs bg-primary-50 text-primary-700 border border-primary-200 px-2 py-1 rounded-full">
+                  Giá:{' '}
+                  {minPrice ? `${Number(minPrice).toLocaleString('vi-VN')}₫` : '0'} –{' '}
+                  {maxPrice
+                    ? `${Number(maxPrice).toLocaleString('vi-VN')}₫`
+                    : 'Không giới hạn'}
+                  <button
+                    onClick={() => setParam({ minPrice: undefined, maxPrice: undefined })}
+                    className="ml-0.5 hover:text-primary-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {minRating && (
+                <span className="flex items-center gap-1 text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full">
+                  ≥ {minRating} sao
+                  <button
+                    onClick={() => setParam({ minRating: undefined })}
+                    className="ml-0.5 hover:text-yellow-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {freeship && (
+                <span className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded-full">
+                  <Truck size={10} /> Freeship
+                  <button
+                    onClick={() => setParam({ freeship: undefined })}
+                    className="ml-0.5 hover:text-green-900"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Products grid/list */}
+          {prodLoading ? (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="card overflow-hidden animate-pulse">
+                    <div className="aspect-square bg-gray-100" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-3 bg-gray-100 rounded" />
+                      <div className="h-4 bg-gray-100 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="card p-3 flex gap-4 animate-pulse">
+                    <div className="w-24 h-24 bg-gray-100 rounded-lg shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-100 rounded w-3/4" />
+                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      <div className="h-5 bg-gray-100 rounded w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : products.length === 0 ? (
+            <div className="text-center py-20 text-gray-500">
+              <p className="text-5xl mb-4">📦</p>
+              <p className="text-lg font-medium mb-2">Không tìm thấy sản phẩm</p>
+              <p className="text-sm">Thử thay đổi bộ lọc hoặc xem danh mục khác</p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="btn-primary mt-4 text-sm">
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {products.map((product: any) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {products.map((product: any) => {
+                const price = product.skus?.[0]?.price || product.minPrice || 0;
+                const comparePrice = product.skus?.[0]?.comparePrice;
+                const discount =
+                  comparePrice && price
+                    ? Math.round(((comparePrice - price) / comparePrice) * 100)
+                    : 0;
+                return (
+                  <Link
+                    key={product.id}
+                    to={`/products/${product.slug}`}
+                    className="card p-3 flex gap-4 hover:shadow-md transition-shadow group"
+                  >
+                    <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
+                      <img
+                        src={
+                          product.images?.[0]?.url ||
+                          'https://via.placeholder.com/112'
+                        }
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-primary-600 mb-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-2">{product.shop?.name}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-primary-600 font-bold text-base">
+                          {Number(price).toLocaleString('vi-VN')}₫
+                        </span>
+                        {comparePrice && (
+                          <span className="text-gray-400 text-xs line-through">
+                            {Number(comparePrice).toLocaleString('vi-VN')}₫
+                          </span>
+                        )}
+                        {discount > 0 && (
+                          <span className="bg-primary-500 text-white text-xs px-1.5 py-0.5 rounded">
+                            -{discount}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {product.avgRating > 0 && (
+                          <span className="flex items-center gap-0.5 text-xs text-gray-500">
+                            <Star
+                              size={12}
+                              className="fill-yellow-400 text-yellow-400"
+                            />
+                            {Number(product.avgRating).toFixed(1)}
+                            <span className="text-gray-400">
+                              ({product.reviewCount ||
+                                product._count?.reviews ||
+                                0})
+                            </span>
+                          </span>
+                        )}
+                        {product.freeShipping && (
+                          <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                            <Truck size={12} /> Freeship
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!prodLoading && totalPages > 1 && (
+            <div className="flex justify-center gap-1.5 mt-8">
+              <button
+                disabled={page <= 1}
+                onClick={() => setParam({ page: String(page - 1) })}
+                className="w-9 h-9 rounded-lg text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                ‹
+              </button>
+              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                let p: number;
+                if (totalPages <= 7) {
+                  p = i + 1;
+                } else if (page <= 4) {
+                  p = i + 1;
+                } else if (page >= totalPages - 3) {
+                  p = totalPages - 6 + i;
+                } else {
+                  p = page - 3 + i;
+                }
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setParam({ page: String(p) })}
+                    className={`w-9 h-9 rounded-lg text-sm transition-colors ${
+                      p === page
+                        ? 'bg-primary-600 text-white font-medium'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+              <button
+                disabled={page >= totalPages}
+                onClick={() => setParam({ page: String(page + 1) })}
+                className="w-9 h-9 rounded-lg text-sm border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -201,5 +201,143 @@ export function createAdminRouter(adminService: AdminService) {
     sendSuccess(res, product);
   });
 
+  // === ADMIN PRODUCTS EXTENDED (added by agent3) ===
+  router.patch('/admin/products/:id/status', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req, res) => {
+    const { status, reason } = req.body;
+    const data: any = { status };
+    if (reason) data.rejectionReason = reason;
+    const product = await prisma.product.update({ where: { id: req.params.id }, data });
+    sendSuccess(res, product);
+  });
+
+  router.patch('/admin/products/bulk-status', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req, res) => {
+    const { productIds, status, reason } = req.body;
+    const data: any = { status };
+    if (reason) data.rejectionReason = reason;
+    await prisma.product.updateMany({ where: { id: { in: productIds } }, data });
+    sendSuccess(res, { updated: productIds.length });
+  });
+
+  router.get('/admin/products/:id', authenticate, authorize('ADMIN_CONTENT', 'ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const product = await prisma.product.findUniqueOrThrow({
+      where: { id: req.params.id },
+      include: {
+        images: true,
+        shop: { select: { name: true } },
+        category: { select: { name: true } },
+        variants: true,
+      },
+    });
+    sendSuccess(res, product);
+  });
+
+  // === BANNERS REORDER (added by agent3) ===
+  router.patch('/admin/banners/reorder', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req, res) => {
+    const { orderedIds } = req.body as { orderedIds: string[] };
+    await Promise.all(orderedIds.map((id: string, idx: number) =>
+      prisma.banner.update({ where: { id }, data: { sortOrder: idx } })
+    ));
+    sendSuccess(res, { reordered: orderedIds.length });
+  });
+
+  router.get('/admin/banners/all', authenticate, authorize('ADMIN_CONTENT', 'SUPER_ADMIN'), async (req, res) => {
+    const banners = await prisma.banner.findMany({ orderBy: { sortOrder: 'asc' } });
+    sendSuccess(res, { data: banners });
+  });
+
+  // === PROMOTIONS EXTENDED (added by agent3) ===
+  router.patch('/admin/promotions/:id', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { name, code, discountValue, minOrderAmount, maxDiscount, usageLimit, startDate, endDate, isActive } = req.body;
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (code !== undefined) data.code = code || null;
+    if (discountValue !== undefined) data.discountValue = Number(discountValue);
+    if (minOrderAmount !== undefined) data.minOrderAmount = minOrderAmount ? Number(minOrderAmount) : null;
+    if (maxDiscount !== undefined) data.maxDiscount = maxDiscount ? Number(maxDiscount) : null;
+    if (usageLimit !== undefined) data.usageLimit = usageLimit || null;
+    if (startDate !== undefined) data.startAt = new Date(startDate);
+    if (endDate !== undefined) data.endAt = new Date(endDate);
+    if (isActive !== undefined) data.isActive = isActive;
+    const promotion = await prisma.promotion.update({ where: { id: req.params.id }, data });
+    sendSuccess(res, promotion);
+  });
+
+  router.patch('/admin/promotions/:id/toggle', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const promo = await prisma.promotion.findUniqueOrThrow({ where: { id: req.params.id } });
+    const updated = await prisma.promotion.update({ where: { id: req.params.id }, data: { isActive: !promo.isActive } });
+    sendSuccess(res, updated);
+  });
+
+  router.delete('/admin/promotions/:id', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    await prisma.promotion.delete({ where: { id: req.params.id } });
+    sendSuccess(res, null, 'Promotion deleted');
+  });
+
+  // === RETURN REQUESTS EXTENDED (added by agent3) ===
+  router.patch('/admin/return-requests/:id/approve', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const updated = await prisma.returnRequest.update({
+      where: { id: req.params.id },
+      data: { status: 'SELLER_APPROVED' },
+    });
+    sendSuccess(res, updated);
+  });
+
+  router.patch('/admin/return-requests/:id/reject', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const updated = await prisma.returnRequest.update({
+      where: { id: req.params.id },
+      data: { status: 'CANCELLED', rejectionReason: req.body.reason } as any,
+    });
+    sendSuccess(res, updated);
+  });
+
+  router.patch('/admin/return-requests/bulk-approve', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { ids } = req.body as { ids: string[] };
+    await prisma.returnRequest.updateMany({ where: { id: { in: ids }, status: 'PENDING' }, data: { status: 'SELLER_APPROVED' } });
+    sendSuccess(res, { updated: ids.length });
+  });
+
+  // === WITHDRAWALS BULK (added by agent3) ===
+  router.patch('/admin/withdrawals/bulk-approve', authenticate, authorize('ADMIN_FINANCE', 'SUPER_ADMIN'), async (req: AuthRequest, res) => {
+    const { ids } = req.body as { ids: string[] };
+    for (const id of ids) {
+      try { await adminService.processWithdrawal(id, 'COMPLETED', req.user!.id, 'Bulk approved'); } catch {}
+    }
+    sendSuccess(res, { processed: ids.length });
+  });
+
+  // === SHIPPING CARRIERS (added by agent3) ===
+  router.get('/admin/shipping-carriers', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const carriers = await prisma.shippingCarrier.findMany({ orderBy: { createdAt: 'desc' } });
+    sendSuccess(res, { data: carriers });
+  });
+
+  router.post('/admin/shipping-carriers', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { v4: uuidv4 } = require('uuid');
+    const { name, code, apiEndpoint, apiKey, isActive, trackingUrlTemplate, codSupport, estimatedDays, logoUrl, rates } = req.body;
+    const carrier = await prisma.shippingCarrier.create({
+      data: {
+        id: uuidv4(),
+        name,
+        code: code.toUpperCase(),
+        apiEndpoint: apiEndpoint || null,
+        apiKey: apiKey || null,
+        isActive: isActive ?? true,
+      },
+    });
+    sendSuccess(res, { ...carrier, trackingUrlTemplate, codSupport, estimatedDays, logoUrl, rates }, 'Created', 201);
+  });
+
+  router.patch('/admin/shipping-carriers/:id', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { name, code, apiEndpoint, isActive, apiKey } = req.body;
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (code !== undefined) data.code = code;
+    if (apiEndpoint !== undefined) data.apiEndpoint = apiEndpoint;
+    if (isActive !== undefined) data.isActive = isActive;
+    if (apiKey) data.apiKey = apiKey;
+    const carrier = await prisma.shippingCarrier.update({ where: { id: req.params.id }, data });
+    sendSuccess(res, carrier);
+  });
+
   return router;
 }

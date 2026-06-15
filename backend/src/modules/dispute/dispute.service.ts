@@ -97,7 +97,7 @@ export class DisputeService {
   }
 
   async resolve(id: string, resolution: string, favor: string) {
-    const status = favor === 'buyer' ? 'RESOLVED_BUYER' : 'RESOLVED_SELLER';
+    const status = favor === 'buyer' ? 'RESOLVED_BUYER' : favor === 'seller' ? 'RESOLVED_SELLER' : 'RESOLVED';
     return this.prisma.dispute.update({
       where: { id },
       data: {
@@ -106,6 +106,30 @@ export class DisputeService {
         resolvedAt: new Date(),
         messages: {
           create: { sender: 'ADMIN', content: `Kết luận: ${resolution}` },
+        },
+      },
+    });
+  }
+
+  async escalate(id: string, adminId: string) {
+    return this.prisma.dispute.update({
+      where: { id },
+      data: {
+        status: 'ESCALATED' as any,
+        messages: {
+          create: { sender: 'ADMIN', content: 'Tranh chấp được nâng cấp để xử lý ưu tiên.' },
+        },
+      },
+    });
+  }
+
+  async requestEvidence(id: string, message?: string) {
+    return this.prisma.dispute.update({
+      where: { id },
+      data: {
+        status: 'PENDING_EVIDENCE' as any,
+        messages: {
+          create: { sender: 'ADMIN', content: message || 'Admin yêu cầu bổ sung bằng chứng.' },
         },
       },
     });

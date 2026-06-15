@@ -13,6 +13,25 @@ export function createAffiliateRouter(affiliateService: AffiliateService): Route
     sendSuccess(res, data);
   });
 
+  // Affiliate partner routes
+  router.get('/affiliate/links', authenticate, async (req: AuthRequest, res: Response) => {
+    const partner = await affiliateService.getPartnerByUserId(req.user!.id);
+    const data = await affiliateService.getAffiliateLinks(partner.id);
+    sendSuccess(res, data);
+  });
+
+  router.post('/affiliate/links', authenticate, async (req: AuthRequest, res: Response) => {
+    const partner = await affiliateService.getPartnerByUserId(req.user!.id);
+    const data = await affiliateService.createAffiliateLink(partner.id, req.body);
+    sendSuccess(res, data, 'Affiliate link đã được tạo', 201);
+  });
+
+  router.get('/affiliate/earnings', authenticate, async (req: AuthRequest, res: Response) => {
+    const partner = await affiliateService.getPartnerByUserId(req.user!.id);
+    const data = await affiliateService.getAffiliateEarnings(partner.id);
+    sendSuccess(res, data);
+  });
+
   // Buyer routes
   router.get('/referral/my', authenticate, async (req: AuthRequest, res: Response) => {
     const data = await affiliateService.getMyReferral(req.user!.id);

@@ -33,6 +33,24 @@ export function createAdsRouter(adsService: AdsService): Router {
     sendSuccess(res, data);
   });
 
+  // PATCH /seller/ads/campaigns/:id/toggle — toggle ACTIVE/PAUSED
+  router.patch('/seller/ads/campaigns/:id/toggle', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res: Response) => {
+    const data = await adsService.toggleCampaign(req.params.id, req.user!.shopId!);
+    sendSuccess(res, data);
+  });
+
+  // PATCH /seller/ads/campaigns/:id/budget — update dailyBudget
+  router.patch('/seller/ads/campaigns/:id/budget', authenticate, authorize('SELLER_OWNER'), async (req: AuthRequest, res: Response) => {
+    const data = await adsService.updateCampaignBudget(req.params.id, req.user!.shopId!, req.body.dailyBudget);
+    sendSuccess(res, data);
+  });
+
+  // GET /seller/ads/reports — detailed reports with top products by ROAS
+  router.get('/seller/ads/reports', authenticate, authorize('SELLER_OWNER', 'SELLER_STAFF'), async (req: AuthRequest, res: Response) => {
+    const data = await adsService.getDetailedReports(req.user!.shopId!, req.query.period as string);
+    sendSuccess(res, data);
+  });
+
   // Admin routes
   router.get('/admin/ads/campaigns', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (_req, res: Response) => {
     const data = await adsService.listAdminCampaigns();
