@@ -305,5 +305,39 @@ export function createAdminRouter(adminService: AdminService) {
     sendSuccess(res, { processed: ids.length });
   });
 
+  // === SHIPPING CARRIERS (added by agent3) ===
+  router.get('/admin/shipping-carriers', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const carriers = await prisma.shippingCarrier.findMany({ orderBy: { createdAt: 'desc' } });
+    sendSuccess(res, { data: carriers });
+  });
+
+  router.post('/admin/shipping-carriers', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { v4: uuidv4 } = require('uuid');
+    const { name, code, apiEndpoint, apiKey, isActive, trackingUrlTemplate, codSupport, estimatedDays, logoUrl, rates } = req.body;
+    const carrier = await prisma.shippingCarrier.create({
+      data: {
+        id: uuidv4(),
+        name,
+        code: code.toUpperCase(),
+        apiEndpoint: apiEndpoint || null,
+        apiKey: apiKey || null,
+        isActive: isActive ?? true,
+      },
+    });
+    sendSuccess(res, { ...carrier, trackingUrlTemplate, codSupport, estimatedDays, logoUrl, rates }, 'Created', 201);
+  });
+
+  router.patch('/admin/shipping-carriers/:id', authenticate, authorize('ADMIN_OPERATOR', 'SUPER_ADMIN'), async (req, res) => {
+    const { name, code, apiEndpoint, isActive, apiKey } = req.body;
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (code !== undefined) data.code = code;
+    if (apiEndpoint !== undefined) data.apiEndpoint = apiEndpoint;
+    if (isActive !== undefined) data.isActive = isActive;
+    if (apiKey) data.apiKey = apiKey;
+    const carrier = await prisma.shippingCarrier.update({ where: { id: req.params.id }, data });
+    sendSuccess(res, carrier);
+  });
+
   return router;
 }

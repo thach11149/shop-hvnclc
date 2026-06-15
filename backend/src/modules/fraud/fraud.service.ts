@@ -43,6 +43,23 @@ export class FraudService {
     });
   }
 
+  async blockUserFromCase(caseId: string, adminId?: string) {
+    const fraudCase = await this.prisma.fraudCase.findUniqueOrThrow({ where: { id: caseId } });
+    const updated = await this.prisma.fraudCase.update({
+      where: { id: caseId },
+      data: { status: 'CONFIRMED' as any },
+    });
+    if (fraudCase.entityType === 'USER' && fraudCase.entityId) {
+      try {
+        await this.prisma.user.update({
+          where: { id: fraudCase.entityId },
+          data: { status: 'BANNED' },
+        });
+      } catch {}
+    }
+    return updated;
+  }
+
   async computeRiskScore(entityType: string, entityId: string): Promise<number> {
     let score = 0;
     if (entityType === 'USER') {
